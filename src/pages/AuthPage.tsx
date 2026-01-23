@@ -1,0 +1,151 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Shield, Mail, Lock, Eye, EyeOff, Car } from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function AuthPage() {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+        toast.success('Login realizado com sucesso!');
+        navigate('/dashboard');
+      } else {
+        const { error } = await signUp(email, password);
+        if (error) throw error;
+        toast.success('Conta criada com sucesso!');
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Erro na autenticação');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      {/* Logo */}
+      <div className="flex flex-col items-center mb-10 animate-fade-in">
+        <div className="relative w-20 h-20 mb-4">
+          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-glow" />
+          <div className="absolute inset-2 rounded-full bg-card border-2 border-primary flex items-center justify-center shadow-neon">
+            <Shield className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <h1 className="text-3xl font-bold text-foreground">
+          Kojak <span className="text-primary text-glow">Auto-Log</span>
+        </h1>
+        <p className="text-sm text-muted-foreground mt-2 text-center">
+          Ecossistema de confiança automotiva
+        </p>
+      </div>
+
+      {/* Form Card */}
+      <div className="w-full max-w-sm animate-slide-up">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-elevated">
+          <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+            {isLogin ? 'Entrar' : 'Criar conta'}
+          </h2>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm text-muted-foreground">
+                Email
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="pl-10 h-12 bg-secondary border-border rounded-xl focus:border-primary focus:ring-primary"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm text-muted-foreground">
+                Senha
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pl-10 pr-10 h-12 bg-secondary border-border rounded-xl focus:border-primary focus:ring-primary"
+                  required
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              variant="seal"
+              size="lg"
+              className="w-full mt-6"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Car className="w-5 h-5" />
+                  {isLogin ? 'Entrar' : 'Criar conta'}
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {isLogin ? 'Não tem conta? ' : 'Já tem conta? '}
+              <span className="text-primary font-medium">
+                {isLogin ? 'Criar agora' : 'Fazer login'}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <p className="mt-8 text-xs text-muted-foreground text-center">
+        Registros selados com timestamp imutável do servidor
+      </p>
+    </div>
+  );
+}
