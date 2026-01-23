@@ -58,6 +58,41 @@ export type Database = {
           },
         ]
       }
+      vehicle_users: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          permission: Database["public"]["Enums"]["vehicle_permission"]
+          user_id: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          permission?: Database["public"]["Enums"]["vehicle_permission"]
+          user_id: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          permission?: Database["public"]["Enums"]["vehicle_permission"]
+          user_id?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_users_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "veiculos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       veiculos: {
         Row: {
           ano: number | null
@@ -102,7 +137,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      vehicle_permission: "owner" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -229,6 +264,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      vehicle_permission: ["owner", "editor", "viewer"],
+    },
   },
 } as const
