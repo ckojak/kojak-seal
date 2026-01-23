@@ -1,15 +1,21 @@
+import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useVeiculos } from '@/hooks/useVeiculos';
 import { useManutencoes, calculateHealthScore } from '@/hooks/useManutencoes';
-import { Award, Shield, QrCode, Share2, CheckCircle2, Calendar, Gauge } from 'lucide-react';
+import { Award, Shield, Share2, CheckCircle2, FileDown, Users, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
+import { usePdfExport } from '@/hooks/usePdfExport';
+import { ShareVehicleModal } from '@/components/ShareVehicleModal';
 
 export default function Certificado() {
   const { data: veiculos = [] } = useVeiculos();
   const { data: manutencoes = [] } = useManutencoes();
+  const { exportToPdf, isExporting } = usePdfExport();
+  const [showShareModal, setShowShareModal] = useState(false);
   
   const veiculoAtual = veiculos[0];
   const manutencoesVeiculo = veiculoAtual 
@@ -17,8 +23,37 @@ export default function Certificado() {
     : [];
   const healthScore = calculateHealthScore(manutencoesVeiculo);
 
-  const handleShare = () => {
-    toast.info('Funcionalidade de compartilhamento em breve!');
+  const publicUrl = veiculoAtual 
+    ? `${window.location.origin}/v/${veiculoAtual.id}`
+    : '';
+
+  const handleShare = async () => {
+    if (!veiculoAtual) return;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Histórico de ${veiculoAtual.placa}`,
+          text: `Confira o histórico verificado de ${veiculoAtual.marca} ${veiculoAtual.modelo}`,
+          url: publicUrl,
+        });
+      } catch (error) {
+        // User cancelled or error
+        if ((error as Error).name !== 'AbortError') {
+          // Fallback to copy
+          await navigator.clipboard.writeText(publicUrl);
+          toast.success('Link copiado para a área de transferência!');
+        }
+      }
+    } else {
+      await navigator.clipboard.writeText(publicUrl);
+      toast.success('Link copiado para a área de transferência!');
+    }
+  };
+
+  const handleExportPdf = () => {
+    if (!veiculoAtual) return;
+    exportToPdf(veiculoAtual, manutencoesVeiculo, publicUrl);
   };
 
   if (!veiculoAtual) {
@@ -96,13 +131,22 @@ export default function Certificado() {
               )}
             </div>
 
-            {/* QR Code placeholder */}
+            {/* QR Code */}
             <div className="flex justify-center mb-6">
-              <div className="w-32 h-32 rounded-xl bg-secondary/50 border border-border flex flex-col items-center justify-center">
-                <QrCode className="w-16 h-16 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground mt-2">QR Code</span>
+              <div className="p-4 rounded-xl bg-white">
+                <QRCodeSVG
+                  value={publicUrl}
+                  size={128}
+                  level="H"
+                  includeMargin={false}
+                  bgColor="#FFFFFF"
+                  fgColor="#080808"
+                />
               </div>
             </div>
+            <p className="text-xs text-center text-muted-foreground mb-6">
+              Escaneie para verificar o histórico
+            </p>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -147,17 +191,53 @@ export default function Certificado() {
           </div>
         </div>
 
-        {/* Share Button */}
-        <Button
-          variant="glass"
-          size="lg"
-          className="w-full mt-6 gap-2"
-          onClick={handleShare}
-        >
-          <Share2 className="w-5 h-5" />
-          Compartilhar Certificado
-        </Button>
+        {/* Action Buttons */}
+        <div className="space-y-3 mt-6">
+          <Button
+            variant="glass"
+            size="lg"
+            className="w-full gap-2"
+            onClick={handleShare}
+          >
+            <Share2 className="w-5 h-5" />
+            Compartilhar Certificado
+          </Button>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <FileDown className="w-5 h-5" />
+              )}
+              {isExporting ? 'Gerando...' : 'Exportar PDF'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              onClick={() => setShowShareModal(true)}
+            >
+              <Users className="w-5 h-5" />
+              Gerenciar Acesso
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareVehicleModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        veiculo={veiculoAtual}
+      />
     </AppLayout>
   );
 }

@@ -3,9 +3,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useVeiculos } from '@/hooks/useVeiculos';
 import { useManutencoes } from '@/hooks/useManutencoes';
 import { Button } from '@/components/ui/button';
-import { User, Mail, LogOut, Car, Wrench, Shield } from 'lucide-react';
+import { User, Mail, LogOut, Car, Wrench, Shield, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { NotificationSettings } from '@/components/NotificationSettings';
 
 export default function Perfil() {
   const { user, signOut } = useAuth();
@@ -77,6 +78,15 @@ export default function Perfil() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold text-foreground">Notificações</h3>
+          </div>
+          <NotificationSettings />
         </div>
 
         {/* About */}
