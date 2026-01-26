@@ -1,5 +1,6 @@
 import { Veiculo } from '@/hooks/useVeiculos';
 import { Manutencao, calculateHealthScore } from '@/hooks/useManutencoes';
+import { FipeValue } from '@/components/FipeValue';
 import { Car, Calendar, Gauge } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,9 +9,10 @@ interface VehicleCardProps {
   manutencoes: Manutencao[];
   onClick?: () => void;
   isSelected?: boolean;
+  showFipe?: boolean;
 }
 
-export function VehicleCard({ veiculo, manutencoes, onClick, isSelected }: VehicleCardProps) {
+export function VehicleCard({ veiculo, manutencoes, onClick, isSelected, showFipe = true }: VehicleCardProps) {
   const healthScore = calculateHealthScore(manutencoes);
   
   const getScoreColor = (score: number) => {
@@ -96,6 +98,18 @@ export function VehicleCard({ veiculo, manutencoes, onClick, isSelected }: Vehic
           </span>
         </div>
       </div>
+
+      {/* FIPE Value Section */}
+      {showFipe && (
+        <div className="relative mt-4">
+          <FipeValue 
+            marca={veiculo.marca}
+            modelo={veiculo.modelo}
+            ano={veiculo.ano}
+            healthScore={healthScore}
+          />
+        </div>
+      )}
     </div>
   );
 }

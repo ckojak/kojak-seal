@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#080808"/>
+  <g transform="translate(256, 256)">
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#00FF41" stroke-width="16"/>
+    <path d="M-60,-80 L-60,80 L60,0 Z" fill="#00FF41"/>
+    <path d="M0,-140 L40,-100 L0,-60 L-40,-100 Z" fill="#00FF41" opacity="0.6"/>
+  </g>
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#00FF41" text-anchor="middle">KOJAK</text>
+</svg>

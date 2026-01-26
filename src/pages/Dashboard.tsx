@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { VehicleCard } from '@/components/VehicleCard';
 import { MaintenanceTimeline } from '@/components/MaintenanceTimeline';
+import { PlateSearchBar } from '@/components/PlateSearchBar';
 import { useVeiculos, useCreateVeiculo } from '@/hooks/useVeiculos';
 import { useManutencoes, Manutencao } from '@/hooks/useManutencoes';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,7 +63,7 @@ export default function Dashboard() {
     <AppLayout>
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-muted-foreground">Bem-vindo ao</p>
             <h1 className="text-2xl font-bold text-foreground">
@@ -72,6 +73,11 @@ export default function Dashboard() {
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
             <Shield className="w-5 h-5 text-primary" />
           </div>
+        </div>
+
+        {/* Global Plate Search */}
+        <div className="mb-6">
+          <PlateSearchBar />
         </div>
 
         {/* Main Vehicle Card */}
