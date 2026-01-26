@@ -30,8 +30,8 @@ export default function AuthPage() {
       } else {
         const { error } = await signUp(email, password);
         if (error) throw error;
-        toast.success('Conta criada com sucesso!');
-        navigate('/dashboard');
+        // Redirect to verification page with email
+        navigate('/verify-email', { state: { email } });
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro na autenticação');
