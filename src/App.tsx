@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Pages
 import AuthPage from "./pages/AuthPage";
+import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
 import SelarManutencao from "./pages/SelarManutencao";
 import Historico from "./pages/Historico";
@@ -46,6 +47,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AuthRedirect />} />
+            <Route path="/auth" element={<AuthRedirect />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             {/* Rota pública para verificação de histórico */}
             <Route path="/v/:id" element={<VehiclePublic />} />
             <Route path="/dashboard" element={
