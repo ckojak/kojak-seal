@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useVeiculos } from '@/hooks/useVeiculos';
 import { useManutencoes, calculateHealthScore } from '@/hooks/useManutencoes';
-import { Award, Shield, Share2, CheckCircle2, FileDown, Users, Loader2 } from 'lucide-react';
+import { FipeValue } from '@/components/FipeValue';
+import { Award, Shield, Share2, CheckCircle2, FileDown, Users, Loader2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -49,6 +50,16 @@ export default function Certificado() {
       await navigator.clipboard.writeText(publicUrl);
       toast.success('Link copiado para a área de transferência!');
     }
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!veiculoAtual) return;
+    
+    const message = encodeURIComponent(
+      `Confira o histórico e valor do veículo ${veiculoAtual.placa} selado no Kojak Auto-Log: ${publicUrl}`
+    );
+    const whatsappUrl = `https://wa.me/?text=${message}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleExportPdf = () => {
@@ -131,6 +142,16 @@ export default function Certificado() {
               )}
             </div>
 
+            {/* FIPE Value in Certificate */}
+            <div className="mb-6">
+              <FipeValue 
+                marca={veiculoAtual.marca}
+                modelo={veiculoAtual.modelo}
+                ano={veiculoAtual.ano}
+                healthScore={healthScore}
+              />
+            </div>
+
             {/* QR Code */}
             <div className="flex justify-center mb-6">
               <div className="p-4 rounded-xl bg-white">
@@ -193,6 +214,17 @@ export default function Certificado() {
 
         {/* Action Buttons */}
         <div className="space-y-3 mt-6">
+          {/* WhatsApp Button */}
+          <Button
+            variant="seal"
+            size="lg"
+            className="w-full gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white border-[#25D366]"
+            onClick={handleWhatsAppShare}
+          >
+            <MessageCircle className="w-5 h-5" />
+            Enviar via WhatsApp
+          </Button>
+
           <Button
             variant="glass"
             size="lg"
