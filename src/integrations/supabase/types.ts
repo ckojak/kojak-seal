@@ -161,7 +161,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
+      is_vehicle_owner: {
+        Args: { _user_id: string; _vehicle_id: string }
+        Returns: boolean
+      }
+      user_has_vehicle_access: {
+        Args: { _user_id: string; _vehicle_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       vehicle_permission: "owner" | "editor" | "viewer"
