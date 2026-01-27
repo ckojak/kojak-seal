@@ -15,6 +15,7 @@ import Historico from "./pages/Historico";
 import Certificado from "./pages/Certificado";
 import Perfil from "./pages/Perfil";
 import VehiclePublic from "./pages/VehiclePublic";
+import AdminPanel from "./pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,9 @@ const App = () => (
             } />
             <Route path="/perfil" element={
               <ProtectedRoute><Perfil /></ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute><AdminPanel /></ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
           </Routes>
