@@ -106,35 +106,49 @@ export function useUploadFoto() {
 }
 
 // Calcula o Health Score baseado na frequência de manutenções
-export function calculateHealthScore(manutencoes: Manutencao[]): number {
+// verifiedUserIds: lista de user_ids que são oficinas verificadas
+export function calculateHealthScore(
+  manutencoes: Manutencao[], 
+  verifiedUserIds: string[] = []
+): number {
   if (manutencoes.length === 0) return 50; // Score neutro se não há registros
   
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
   
-  // Manutenções recentes aumentam o score
-  const recentCount = manutencoes.filter(m => 
-    new Date(m.data_selada) > thirtyDaysAgo
-  ).length;
-  
-  const moderateCount = manutencoes.filter(m => {
-    const date = new Date(m.data_selada);
-    return date <= thirtyDaysAgo && date > ninetyDaysAgo;
-  }).length;
-  
   // Score base
   let score = 50;
   
-  // Bônus por manutenções recentes
-  score += Math.min(recentCount * 15, 30);
+  // Calcular pontuação por manutenção
+  manutencoes.forEach(m => {
+    const date = new Date(m.data_selada);
+    const isVerified = verifiedUserIds.includes(m.user_id);
+    
+    // Multiplicador para oficinas verificadas (1.5x mais peso)
+    const multiplier = isVerified ? 1.5 : 1;
+    
+    if (date > thirtyDaysAgo) {
+      // Manutenção recente: +10 pontos (15 se verificada)
+      score += 10 * multiplier;
+    } else if (date > ninetyDaysAgo) {
+      // Manutenção moderada: +5 pontos (7.5 se verificada)
+      score += 5 * multiplier;
+    } else {
+      // Manutenção antiga: +2 pontos (3 se verificada)
+      score += 2 * multiplier;
+    }
+  });
   
-  // Bônus por manutenções moderadas
-  score += Math.min(moderateCount * 5, 15);
+  // Bônus por ter manutenções verificadas
+  const verifiedCount = manutencoes.filter(m => 
+    verifiedUserIds.includes(m.user_id)
+  ).length;
   
-  // Bônus por quantidade total
-  score += Math.min(manutencoes.length * 2, 10);
+  if (verifiedCount > 0) {
+    score += Math.min(verifiedCount * 3, 10); // Bônus extra de até 10 pontos
+  }
   
   // Limitar entre 0 e 100
-  return Math.min(Math.max(score, 0), 100);
+  return Math.min(Math.max(Math.round(score), 0), 100);
 }
