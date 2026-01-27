@@ -1,14 +1,25 @@
 import { Manutencao } from '@/hooks/useManutencoes';
+import { useProfiles, Profile } from '@/hooks/useProfiles';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CheckCircle2, Gauge, Wrench, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { VerifiedBadge } from './VerifiedBadge';
 
 interface MaintenanceTimelineProps {
   manutencoes: Manutencao[];
+  profiles?: Profile[];
 }
 
-export function MaintenanceTimeline({ manutencoes }: MaintenanceTimelineProps) {
+export function MaintenanceTimeline({ manutencoes, profiles = [] }: MaintenanceTimelineProps) {
+  // Buscar profiles se não foram passados
+  const userIds = [...new Set(manutencoes.map(m => m.user_id))];
+  const { data: fetchedProfiles } = useProfiles(profiles.length === 0 ? userIds : []);
+  
+  const allProfiles = profiles.length > 0 ? profiles : (fetchedProfiles || []);
+  
+  const getProfile = (userId: string) => allProfiles.find(p => p.user_id === userId);
+  
   if (manutencoes.length === 0) {
     return (
       <div className="text-center py-12">
@@ -72,10 +83,27 @@ export function MaintenanceTimeline({ manutencoes }: MaintenanceTimelineProps) {
               
               {/* Content */}
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Wrench className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">{manutencao.oficina}</span>
-                </div>
+                {(() => {
+                  const profile = getProfile(manutencao.user_id);
+                  const isVerified = profile?.is_verified ?? false;
+                  const displayName = profile?.display_name || manutencao.oficina;
+                  
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Wrench className={cn(
+                        "w-4 h-4",
+                        isVerified ? "text-primary" : "text-muted-foreground"
+                      )} />
+                      <span className={cn(
+                        "font-medium",
+                        isVerified ? "text-primary" : "text-foreground"
+                      )}>
+                        {manutencao.oficina}
+                      </span>
+                      {isVerified && <VerifiedBadge size="sm" />}
+                    </div>
+                  );
+                })()}
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {manutencao.descricao}
                 </p>
