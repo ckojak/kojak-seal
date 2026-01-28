@@ -2,14 +2,16 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { SealAnimation } from '@/components/SealAnimation';
+import { SubscriptionRenewalModal } from '@/components/SubscriptionRenewalModal';
 import { useVeiculos } from '@/hooks/useVeiculos';
 import { useCreateManutencao, useUploadFoto } from '@/hooks/useManutencoes';
+import { useSubscriptionGatekeeper } from '@/hooks/useSubscription';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Upload, Stamp, X, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Camera, Stamp, X, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SelarManutencao() {
@@ -18,6 +20,9 @@ export default function SelarManutencao() {
   const createManutencao = useCreateManutencao();
   const uploadFoto = useUploadFoto();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Subscription gatekeeper
+  const { showRenewalModal, checkAccess, closeModal, isLoading: subscriptionLoading } = useSubscriptionGatekeeper();
   
   const [veiculoId, setVeiculoId] = useState<string>('');
   const [kmAtual, setKmAtual] = useState('');
@@ -50,6 +55,11 @@ export default function SelarManutencao() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check subscription access before proceeding
+    if (!checkAccess()) {
+      return; // Modal will be shown by gatekeeper
+    }
     
     if (!veiculoId) {
       toast.error('Selecione um veículo');
@@ -89,9 +99,20 @@ export default function SelarManutencao() {
     navigate('/historico');
   };
 
+  if (subscriptionLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <SealAnimation show={showSeal} onComplete={handleSealComplete} />
+      <SubscriptionRenewalModal open={showRenewalModal} onClose={closeModal} />
       
       <div className="px-4 pt-6 pb-4">
         {/* Header */}
