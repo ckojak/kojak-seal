@@ -62,7 +62,8 @@ export function PlateSearchBar() {
   };
 
   const handleCadastrar = () => {
-    navigate('/dashboard');
+    // Navigate to dashboard and trigger the add vehicle modal
+    navigate('/dashboard?add=true');
   };
 
   const handleClear = () => {
