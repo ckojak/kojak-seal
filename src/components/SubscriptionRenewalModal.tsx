@@ -7,9 +7,9 @@ interface SubscriptionRenewalModalProps {
   onClose: () => void;
 }
 
-const WHATSAPP_NUMBER = '5511999999999'; // Número do WhatsApp para renovação
+const WHATSAPP_NUMBER = '5521979934676';
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  'Olá! Gostaria de renovar minha assinatura do Kojak Auto-Log.'
+  'Olá Kojak! Minha assinatura do Auto-Log está vencendo (ou venceu) e quero renovar meu acesso.'
 );
 
 export function SubscriptionRenewalModal({ open, onClose }: SubscriptionRenewalModalProps) {

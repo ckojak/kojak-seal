@@ -12,6 +12,8 @@ import { Shield, Plus, Car, Stamp, History, ChevronRight } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AddVehicleForm, VehicleFormData } from '@/components/AddVehicleForm';
+import { SubscriptionExpiryBanner } from '@/components/SubscriptionExpiryBanner';
+import { TrialBadge } from '@/components/TrialBadge';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -62,6 +64,9 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="px-4 pt-6 pb-4">
+        {/* Subscription Expiry Banner */}
+        <SubscriptionExpiryBanner />
+
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -69,6 +74,7 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-foreground">
               Kojak <span className="text-primary text-glow">Auto-Log</span>
             </h1>
+            <TrialBadge />
           </div>
           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
             <Shield className="w-5 h-5 text-primary" />

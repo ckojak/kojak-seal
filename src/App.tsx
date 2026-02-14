@@ -16,6 +16,7 @@ import Certificado from "./pages/Certificado";
 import Perfil from "./pages/Perfil";
 import VehiclePublic from "./pages/VehiclePublic";
 import AdminPanel from "./pages/AdminPanel";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,9 @@ const App = () => (
             <Route path="/verify-email" element={<VerifyEmail />} />
             {/* Rota pública para verificação de histórico */}
             <Route path="/v/:id" element={<VehiclePublic />} />
+            <Route path="/onboarding" element={
+              <ProtectedRoute><Onboarding /></ProtectedRoute>
+            } />
             <Route path="/dashboard" element={
               <ProtectedRoute><Dashboard /></ProtectedRoute>
             } />
