@@ -60,34 +60,52 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cnpj: string | null
           created_at: string
           display_name: string | null
+          endereco: string | null
           id: string
           is_verified: boolean
+          onboarding_completed: boolean | null
+          razao_social: string | null
           subscription_expires_at: string | null
           subscription_status: string
+          telefone: string | null
           updated_at: string
           user_id: string
+          user_type: string | null
         }
         Insert: {
+          cnpj?: string | null
           created_at?: string
           display_name?: string | null
+          endereco?: string | null
           id?: string
           is_verified?: boolean
+          onboarding_completed?: boolean | null
+          razao_social?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
+          telefone?: string | null
           updated_at?: string
           user_id: string
+          user_type?: string | null
         }
         Update: {
+          cnpj?: string | null
           created_at?: string
           display_name?: string | null
+          endereco?: string | null
           id?: string
           is_verified?: boolean
+          onboarding_completed?: boolean | null
+          razao_social?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
+          telefone?: string | null
           updated_at?: string
           user_id?: string
+          user_type?: string | null
         }
         Relationships: []
       }
