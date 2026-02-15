@@ -1,1 +1,4 @@
 project_id = "uzfkgeeryxlsreocfvry"
+
+[functions.scan-part]
+verify_jwt = false
