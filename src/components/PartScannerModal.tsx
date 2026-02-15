@@ -2,8 +2,9 @@ import { useState, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Camera, ShoppingCart, Loader2, AlertCircle, Copy, Search } from 'lucide-react';
+import { Camera, ShoppingCart, Loader2, AlertCircle, Search, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PartScannerModalProps {
   open: boolean;
@@ -16,14 +17,14 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
   const [image, setImage] = useState<string | null>(null);
   const [partName, setPartName] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [ocrFailed, setOcrFailed] = useState(false);
+  const [aiFailed, setAiFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetState = useCallback(() => {
     setImage(null);
     setPartName('');
     setIsProcessing(false);
-    setOcrFailed(false);
+    setAiFailed(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
 
@@ -32,42 +33,29 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
     onClose();
   };
 
-  const processImageWithOCR = async (file: File) => {
+  const processImageWithVisionAI = async (base64: string) => {
     setIsProcessing(true);
-    setOcrFailed(false);
+    setAiFailed(false);
 
     try {
-      // Dynamic import to avoid breaking the build if Tesseract isn't available
-      const Tesseract = await Promise.race([
-        import('tesseract.js'),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('OCR timeout')), 10000)
-        ),
-      ]);
+      const { data, error } = await supabase.functions.invoke('scan-part', {
+        body: { imageBase64: base64 },
+      });
 
-      const worker = await (Tesseract as any).createWorker('por');
-      const { data } = await Promise.race([
-        worker.recognize(file),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('OCR timeout')), 10000)
-        ),
-      ]);
-      await worker.terminate();
+      if (error) throw error;
 
-      const text = data?.text?.trim();
-      if (text && text.length > 2) {
-        // Take first meaningful line
-        const firstLine = text.split('\n').find((l: string) => l.trim().length > 2) || text;
-        setPartName(firstLine.trim().slice(0, 100));
-        toast.success('Texto detectado na imagem!');
+      const description = data?.partDescription?.trim();
+      if (description && description.length > 1) {
+        setPartName(description.slice(0, 100));
+        toast.success('✅ Peça identificada pela IA!');
       } else {
-        setOcrFailed(true);
-        toast.info('Não foi possível ler o texto. Digite o nome da peça manualmente.');
+        setAiFailed(true);
+        toast.info('IA não conseguiu identificar. Digite o nome manualmente.');
       }
     } catch (error) {
-      console.warn('OCR failed:', error);
-      setOcrFailed(true);
-      toast.info('Não foi possível ler a imagem. Digite o nome da peça manualmente.');
+      console.warn('Vision AI failed:', error);
+      setAiFailed(true);
+      toast.info('Falha na análise. Digite o nome da peça manualmente.');
     } finally {
       setIsProcessing(false);
     }
@@ -77,13 +65,13 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Preview
     const reader = new FileReader();
-    reader.onloadend = () => setImage(reader.result as string);
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setImage(result);
+      processImageWithVisionAI(result);
+    };
     reader.readAsDataURL(file);
-
-    // OCR
-    processImageWithOCR(file);
   };
 
   const handleBuyClick = async () => {
@@ -97,11 +85,9 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
       await navigator.clipboard.writeText(text);
       toast.success('✅ Nome copiado! Cole na barra de busca do site.');
     } catch {
-      // Fallback for browsers without clipboard API
       toast.info(`Copie manualmente: "${text}"`);
     }
 
-    // Open affiliate link
     window.open(AFFILIATE_URL, '_blank');
   };
 
@@ -116,7 +102,6 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* Camera input - HTML5 native for iOS/Android compatibility */}
           <input
             ref={fileInputRef}
             type="file"
@@ -136,11 +121,9 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
                 <Camera className="w-8 h-8 text-primary" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-foreground">
-                  📸 Tirar foto da peça
-                </p>
+                <p className="text-sm font-medium text-foreground">📸 Tirar foto da peça</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  O sistema tentará ler o nome automaticamente
+                  A IA identificará automaticamente a peça
                 </p>
               </div>
             </button>
@@ -157,25 +140,22 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
             </div>
           )}
 
-          {/* Processing indicator */}
           {isProcessing && (
             <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              <p className="text-sm text-primary">Lendo imagem...</p>
+              <Sparkles className="w-5 h-5 animate-pulse text-primary" />
+              <p className="text-sm text-primary font-medium">Consultando Inteligência Artificial...</p>
             </div>
           )}
 
-          {/* OCR failed notice */}
-          {ocrFailed && (
+          {aiFailed && (
             <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <AlertCircle className="w-5 h-5 text-destructive shrink-0" />
               <p className="text-xs text-muted-foreground">
-                Não foi possível ler automaticamente. Digite o nome da peça abaixo.
+                Não foi possível identificar automaticamente. Digite o nome da peça abaixo.
               </p>
             </div>
           )}
 
-          {/* Part name input */}
           <div className="space-y-2">
             <label className="text-sm text-muted-foreground">Nome da Peça</label>
             <div className="relative">
@@ -190,7 +170,6 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
             </div>
           </div>
 
-          {/* Buy button */}
           <Button
             onClick={handleBuyClick}
             disabled={!partName.trim()}
