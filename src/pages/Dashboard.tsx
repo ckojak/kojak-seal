@@ -8,12 +8,13 @@ import { useManutencoes, Manutencao } from '@/hooks/useManutencoes';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Shield, Plus, Car, Stamp, History, ChevronRight } from 'lucide-react';
+import { Shield, Plus, Car, Stamp, History, ChevronRight, Camera } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AddVehicleForm, VehicleFormData } from '@/components/AddVehicleForm';
 import { SubscriptionExpiryBanner } from '@/components/SubscriptionExpiryBanner';
 import { TrialBadge } from '@/components/TrialBadge';
+import { PartScannerModal } from '@/components/PartScannerModal';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function Dashboard() {
   
   const [selectedVeiculo, setSelectedVeiculo] = useState<string | null>(null);
   const [showAddVeiculo, setShowAddVeiculo] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   // Auto-open modal if ?add=true is in URL (from "Cadastrar este carro" button)
   useEffect(() => {
@@ -128,26 +130,40 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         {veiculoAtual && (
-          <div className="grid grid-cols-2 gap-3 mt-6">
+          <>
+            <div className="grid grid-cols-2 gap-3 mt-6">
+              <Button
+                variant="seal"
+                size="xl"
+                className="flex-col h-auto py-6 gap-2"
+                onClick={() => navigate('/selar')}
+              >
+                <Stamp className="w-8 h-8" />
+                <span>Selar Manutenção</span>
+              </Button>
+              <Button
+                variant="glass"
+                size="xl"
+                className="flex-col h-auto py-6 gap-2"
+                onClick={() => navigate('/historico')}
+              >
+                <History className="w-8 h-8 text-primary" />
+                <span>Ver Histórico</span>
+              </Button>
+            </div>
+
+            {/* Part Scanner Button */}
             <Button
-              variant="seal"
-              size="xl"
-              className="flex-col h-auto py-6 gap-2"
-              onClick={() => navigate('/selar')}
+              variant="outline"
+              size="lg"
+              className="w-full mt-3 gap-3"
+              onClick={() => setShowScanner(true)}
             >
-              <Stamp className="w-8 h-8" />
-              <span>Selar Manutenção</span>
+              <Camera className="w-5 h-5 text-primary" />
+              📸 Escanear Peça
             </Button>
-            <Button
-              variant="glass"
-              size="xl"
-              className="flex-col h-auto py-6 gap-2"
-              onClick={() => navigate('/historico')}
-            >
-              <History className="w-8 h-8 text-primary" />
-              <span>Ver Histórico</span>
-            </Button>
-          </div>
+            <PartScannerModal open={showScanner} onClose={() => setShowScanner(false)} />
+          </>
         )}
 
         {/* Recent Maintenance */}

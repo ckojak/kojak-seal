@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, MessageCircle, X } from 'lucide-react';
+import { AlertTriangle, MessageCircle, X, Crown, Zap } from 'lucide-react';
 
 interface SubscriptionRenewalModalProps {
   open: boolean;
@@ -9,7 +9,7 @@ interface SubscriptionRenewalModalProps {
 
 const WHATSAPP_NUMBER = '5521979934676';
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  'Olá Kojak! Minha assinatura do Auto-Log está vencendo (ou venceu) e quero renovar meu acesso.'
+  'Olá Kojak, quero assinar/renovar meu plano no Auto-Log.'
 );
 
 export function SubscriptionRenewalModal({ open, onClose }: SubscriptionRenewalModalProps) {
@@ -41,21 +41,52 @@ export function SubscriptionRenewalModal({ open, onClose }: SubscriptionRenewalM
           </DialogTitle>
           
           <DialogDescription className="text-muted-foreground text-center">
-            Sua assinatura expirou. Para continuar selando manutenções e usando recursos premium, renove agora.
+            Sua assinatura expirou. Renove para continuar selando manutenções e usando recursos premium.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 mt-6">
+        <div className="space-y-3 mt-4">
+          {/* Plano Mensal */}
+          <div className="rounded-xl border border-border bg-secondary/30 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Plano Mensal</p>
+                <p className="text-xs text-muted-foreground">Acesso completo por 30 dias</p>
+              </div>
+            </div>
+            <p className="text-lg font-bold text-primary">R$ 49,90</p>
+          </div>
+
+          {/* Plano Anual */}
+          <div className="rounded-xl border-2 border-primary/50 bg-primary/5 p-4 flex items-center justify-between relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
+              MELHOR OFERTA
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Plano Anual</p>
+                <p className="text-xs text-muted-foreground">2 meses grátis incluso</p>
+              </div>
+            </div>
+            <p className="text-lg font-bold text-primary">R$ 499</p>
+          </div>
+
           <Button
             onClick={handleWhatsAppClick}
-            className="w-full h-12 bg-[#25D366] hover:bg-[#128C7E] text-white gap-3"
+            className="w-full h-12 bg-[#25D366] hover:bg-[#128C7E] text-white gap-3 mt-2"
           >
             <MessageCircle className="w-5 h-5" />
             Renovar via WhatsApp
           </Button>
           
           <p className="text-xs text-muted-foreground text-center">
-            Entre em contato para renovar sua assinatura e desbloquear todos os recursos do Kojak Auto-Log.
+            Escolha seu plano e envie a mensagem. Nossa equipe ativará seu acesso em minutos.
           </p>
         </div>
       </DialogContent>
