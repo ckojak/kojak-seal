@@ -52,8 +52,14 @@ export function PartScannerModal({ open, onClose }: PartScannerModalProps) {
         setAiFailed(true);
         toast.info('IA não conseguiu identificar. Digite o nome manualmente.');
       }
-    } catch (error) {
-      console.warn('Vision AI failed:', error);
+    } catch (error: any) {
+      console.error('Vision AI Error Details:', {
+        message: error?.message,
+        name: error?.name,
+        status: error?.status,
+        context: error?.context,
+        full: error,
+      });
       setAiFailed(true);
       toast.info('Falha na análise. Digite o nome da peça manualmente.');
     } finally {
