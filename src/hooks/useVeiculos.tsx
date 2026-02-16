@@ -14,18 +14,80 @@ export interface Veiculo {
   updated_at: string;
 }
 
-export function useVeiculos() {
+export function useVeiculos(options?: { isOficina?: boolean }) {
   const { user } = useAuth();
+  const isOficina = options?.isOficina ?? false;
 
   return useQuery({
-    queryKey: ['veiculos', user?.id],
+    queryKey: ['veiculos', user?.id, isOficina],
     queryFn: async () => {
       if (!user) return [];
+
+      if (isOficina) {
+        // Oficina: fetch vehicles they own + vehicles they serviced
+        // Priority 1: vehicles with maintenance by this oficina
+        // Priority 2: vehicles they own
+        const [ownedRes, servicedRes] = await Promise.all([
+          supabase
+            .from('veiculos')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('manutencoes')
+            .select('veiculo_id')
+            .eq('user_id', user.id),
+        ]);
+
+        if (ownedRes.error) throw ownedRes.error;
+
+        const servicedVehicleIds = new Set(
+          (servicedRes.data ?? []).map((m) => m.veiculo_id)
+        );
+
+        // Fetch serviced vehicles not already owned
+        const ownedIds = new Set((ownedRes.data ?? []).map((v) => v.id));
+        const extraIds = [...servicedVehicleIds].filter((id) => !ownedIds.has(id));
+
+        let servicedVehicles: Veiculo[] = [];
+        if (extraIds.length > 0) {
+          const { data, error } = await supabase
+            .from('veiculos')
+            .select('*')
+            .in('id', extraIds);
+          if (!error && data) servicedVehicles = data as Veiculo[];
+        }
+
+        // Merge: serviced first, then owned-only
+        const allVehicles = [...(ownedRes.data as Veiculo[]), ...servicedVehicles];
+        const seen = new Set<string>();
+        const sorted: Veiculo[] = [];
+
+        // Priority 1: vehicles serviced by this oficina
+        for (const v of allVehicles) {
+          if (servicedVehicleIds.has(v.id) && !seen.has(v.id)) {
+            sorted.push(v);
+            seen.add(v.id);
+          }
+        }
+        // Priority 2: remaining owned vehicles
+        for (const v of allVehicles) {
+          if (!seen.has(v.id)) {
+            sorted.push(v);
+            seen.add(v.id);
+          }
+        }
+
+        return sorted;
+      }
+
+      // Regular user: only their own vehicles
       const { data, error } = await supabase
         .from('veiculos')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as Veiculo[];
     },

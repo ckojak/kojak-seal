@@ -8,9 +8,13 @@ import { ptBR } from 'date-fns/locale';
 import { calculateHealthScore, Manutencao } from '@/hooks/useManutencoes';
 import { Veiculo } from '@/hooks/useVeiculos';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 
 export default function VehiclePublic() {
   const { id } = useParams<{ id: string }>();
+  const { user, loading: authLoading } = useAuth();
+  const { isOficina } = useCurrentProfile();
   const navigate = useNavigate();
 
   const { data: veiculo, isLoading: loadingVeiculo, error: veiculoError } = useQuery({
@@ -46,7 +50,11 @@ export default function VehiclePublic() {
   });
 
   const healthScore = calculateHealthScore(manutencoes);
-  const isLoading = loadingVeiculo || loadingManutencoes;
+  const isLoading = loadingVeiculo || loadingManutencoes || authLoading;
+
+  // Access control: logged-in users can only view their own vehicles or if they're oficina
+  const isOwner = veiculo && user ? veiculo.user_id === user.id : false;
+  const hasAccess = !user || isOwner || isOficina; // Non-logged-in users can view (public), owners can view, oficinas can view
 
   const publicUrl = `${window.location.origin}/v/${id}`;
 
@@ -66,6 +74,12 @@ export default function VehiclePublic() {
         <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
+  }
+
+  // Redirect logged-in non-owners (non-oficina) to 403
+  if (veiculo && user && !hasAccess) {
+    navigate('/forbidden', { replace: true });
+    return null;
   }
 
   if (veiculoError || !veiculo) {

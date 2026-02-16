@@ -17,6 +17,7 @@ import Perfil from "./pages/Perfil";
 import VehiclePublic from "./pages/VehiclePublic";
 import AdminPanel from "./pages/AdminPanel";
 import Onboarding from "./pages/Onboarding";
+import Forbidden from "./pages/Forbidden";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/admin" element={
               <ProtectedRoute><AdminPanel /></ProtectedRoute>
             } />
+            <Route path="/forbidden" element={<Forbidden />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
