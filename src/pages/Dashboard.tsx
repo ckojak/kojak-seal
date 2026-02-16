@@ -6,6 +6,7 @@ import { PlateSearchBar } from '@/components/PlateSearchBar';
 import { useVeiculos, useCreateVeiculo } from '@/hooks/useVeiculos';
 import { useManutencoes, Manutencao } from '@/hooks/useManutencoes';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Shield, Plus, Car, Stamp, History, ChevronRight, Camera } from 'lucide-react';
@@ -18,7 +19,8 @@ import { PartScannerModal } from '@/components/PartScannerModal';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: veiculos = [], isLoading: loadingVeiculos } = useVeiculos();
+  const { isOficina, canSearchPlates } = useCurrentProfile();
+  const { data: veiculos = [], isLoading: loadingVeiculos } = useVeiculos({ isOficina });
   const { data: manutencoes = [], isLoading: loadingManutencoes } = useManutencoes();
   const createVeiculo = useCreateVeiculo();
   const navigate = useNavigate();
@@ -83,10 +85,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Global Plate Search */}
-        <div className="mb-6">
-          <PlateSearchBar />
-        </div>
+        {/* Global Plate Search - Only for oficina users with CNPJ */}
+        {canSearchPlates && (
+          <div className="mb-6">
+            <PlateSearchBar />
+          </div>
+        )}
 
         {/* Main Vehicle Card */}
         {loadingVeiculos ? (
