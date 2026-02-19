@@ -9,7 +9,7 @@ interface SubscriptionRenewalModalProps {
 
 const WHATSAPP_NUMBER = '5521979934676';
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  'Olá Kojak, quero assinar/renovar meu plano no Auto-Log.'
+  'Olá, quero assinar/renovar meu plano no Ficha do Carro.'
 );
 
 export function SubscriptionRenewalModal({ open, onClose }: SubscriptionRenewalModalProps) {

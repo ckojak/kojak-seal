@@ -97,10 +97,10 @@ export default function Perfil() {
         <div className="bg-card border border-border rounded-2xl p-5 mb-6">
           <div className="flex items-center gap-3 mb-3">
             <Shield className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-foreground">Sobre o Kojak Auto-Log</h3>
+            <h3 className="font-semibold text-foreground">Sobre o Ficha do Carro</h3>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Ecossistema de confiança automotiva onde manutenções são seladas com data imutável 
+            Seu mecânico online onde manutenções são seladas com data imutável 
             do servidor, garantindo a autenticidade do histórico do veículo.
           </p>
         </div>

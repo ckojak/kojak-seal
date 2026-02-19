@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Mail, Lock, Eye, EyeOff, Car } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, Car } from 'lucide-react';
 import { toast } from 'sonner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -30,7 +31,6 @@ export default function AuthPage() {
       } else {
         const { error } = await signUp(email, password);
         if (error) throw error;
-        // Redirect to verification page with email
         navigate('/verify-email', { state: { email } });
       }
     } catch (error: any) {
@@ -42,19 +42,24 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
       {/* Logo */}
       <div className="flex flex-col items-center mb-10 animate-fade-in">
         <div className="relative w-20 h-20 mb-4">
-          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-glow" />
-          <div className="absolute inset-2 rounded-full bg-card border-2 border-primary flex items-center justify-center shadow-neon">
-            <Shield className="w-8 h-8 text-primary" />
+          <div className="absolute inset-0 rounded-2xl bg-primary/10" />
+          <div className="absolute inset-2 rounded-xl bg-card border-2 border-primary flex items-center justify-center shadow-card">
+            <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
         </div>
         <h1 className="text-3xl font-bold text-foreground">
-          Kojak <span className="text-primary text-glow">Auto-Log</span>
+          Ficha do Carro
         </h1>
         <p className="text-sm text-muted-foreground mt-2 text-center">
-          Ecossistema de confiança automotiva
+          Seu Mecânico Online
         </p>
       </div>
 
@@ -112,7 +117,6 @@ export default function AuthPage() {
 
             <Button
               type="submit"
-              variant="seal"
               size="lg"
               className="w-full mt-6"
               disabled={loading}

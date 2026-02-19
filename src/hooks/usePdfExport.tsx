@@ -25,8 +25,8 @@ export function usePdfExport() {
       let yPos = margin;
 
       // Cores do tema
-      const primaryColor: [number, number, number] = [0, 255, 65]; // Verde neon
-      const darkColor: [number, number, number] = [8, 8, 8]; // Carbon black
+      const primaryColor: [number, number, number] = [26, 54, 93]; // Azul Marinho
+      const darkColor: [number, number, number] = [15, 23, 42]; // Slate-900
       const grayColor: [number, number, number] = [100, 100, 100];
 
       // Background
@@ -37,7 +37,7 @@ export function usePdfExport() {
       doc.setTextColor(...primaryColor);
       doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
-      doc.text('KOJAK AUTO-LOG', pageWidth / 2, yPos, { align: 'center' });
+      doc.text('FICHA DO CARRO', pageWidth / 2, yPos, { align: 'center' });
       yPos += 8;
 
       doc.setTextColor(...grayColor);
@@ -102,7 +102,7 @@ export function usePdfExport() {
       yPos += 55;
 
       // Selo de verificação
-      doc.setFillColor(0, 255, 65, 0.1);
+      doc.setFillColor(26, 54, 93, 0.1);
       doc.roundedRect(margin, yPos, pageWidth - (margin * 2), 12, 2, 2, 'F');
       doc.setTextColor(...primaryColor);
       doc.setFontSize(9);
@@ -155,7 +155,7 @@ export function usePdfExport() {
           doc.text(dataFormatada, margin + 5, yPos + 8);
           
           // Badge verificado
-          doc.setFillColor(0, 255, 65, 0.2);
+          doc.setFillColor(26, 54, 93, 0.2);
           doc.roundedRect(pageWidth - margin - 30, yPos + 3, 25, 8, 1, 1, 'F');
           doc.setFontSize(6);
           doc.text('SELADO', pageWidth - margin - 17.5, yPos + 8.5, { align: 'center' });
@@ -212,7 +212,7 @@ export function usePdfExport() {
       doc.text(`Verificar online: ${publicUrl}`, pageWidth / 2, yPos, { align: 'center' });
 
       // Salvar PDF
-      const fileName = `kojak-${veiculo.placa}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      const fileName = `ficha-do-carro-${veiculo.placa}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       doc.save(fileName);
       
       toast.success('PDF exportado com sucesso!');

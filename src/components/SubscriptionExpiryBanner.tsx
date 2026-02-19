@@ -6,7 +6,7 @@ import { differenceInDays } from 'date-fns';
 
 const WHATSAPP_NUMBER = '5521979934676';
 const WHATSAPP_MESSAGE = encodeURIComponent(
-  'Olá Kojak! Minha assinatura do Auto-Log está vencendo (ou venceu) e quero renovar meu acesso.'
+  'Olá! Minha assinatura do Ficha do Carro está vencendo (ou venceu) e quero renovar meu acesso.'
 );
 
 export function SubscriptionExpiryBanner() {

@@ -156,7 +156,7 @@ export function PlateSearchBar() {
                 Veículo não encontrado
               </p>
               <p className="text-sm text-muted-foreground mb-3">
-                A placa "{searchPlaca}" não está registrada no Kojak Auto-Log.
+                A placa "{searchPlaca}" não está registrada no Ficha do Carro.
               </p>
               <div className="flex gap-2">
                 <Button

@@ -9,13 +9,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Shield, Plus, Car, Stamp, History, ChevronRight, Camera } from 'lucide-react';
+import { ShieldCheck, Plus, Car, Stamp, History, ChevronRight, Camera } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AddVehicleForm, VehicleFormData } from '@/components/AddVehicleForm';
 import { SubscriptionExpiryBanner } from '@/components/SubscriptionExpiryBanner';
 import { TrialBadge } from '@/components/TrialBadge';
 import { PartScannerModal } from '@/components/PartScannerModal';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -30,16 +31,13 @@ export default function Dashboard() {
   const [showAddVeiculo, setShowAddVeiculo] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
 
-  // Auto-open modal if ?add=true is in URL (from "Cadastrar este carro" button)
   useEffect(() => {
     if (searchParams.get('add') === 'true') {
       setShowAddVeiculo(true);
-      // Clear the param from URL
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
 
-  // Filtrar manutenções pelo veículo selecionado
   const filteredManutencoes = selectedVeiculo 
     ? manutencoes.filter((m: Manutencao) => m.veiculo_id === selectedVeiculo)
     : manutencoes;
@@ -68,7 +66,6 @@ export default function Dashboard() {
   return (
     <AppLayout>
       <div className="px-4 pt-6 pb-4">
-        {/* Subscription Expiry Banner */}
         <SubscriptionExpiryBanner />
 
         {/* Header */}
@@ -76,12 +73,15 @@ export default function Dashboard() {
           <div>
             <p className="text-sm text-muted-foreground">Bem-vindo ao</p>
             <h1 className="text-2xl font-bold text-foreground">
-              Kojak <span className="text-primary text-glow">Auto-Log</span>
+              Ficha do Carro
             </h1>
             <TrialBadge />
           </div>
-          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+            </div>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export default function Dashboard() {
             </p>
             <Dialog open={showAddVeiculo} onOpenChange={setShowAddVeiculo}>
               <DialogTrigger asChild>
-                <Button variant="neon">
+                <Button>
                   <Plus className="w-4 h-4" />
                   Adicionar veículo
                 </Button>
@@ -137,7 +137,6 @@ export default function Dashboard() {
           <>
             <div className="grid grid-cols-2 gap-3 mt-6">
               <Button
-                variant="seal"
                 size="xl"
                 className="flex-col h-auto py-6 gap-2"
                 onClick={() => navigate('/selar')}
@@ -146,7 +145,7 @@ export default function Dashboard() {
                 <span>Selar Manutenção</span>
               </Button>
               <Button
-                variant="glass"
+                variant="outline"
                 size="xl"
                 className="flex-col h-auto py-6 gap-2"
                 onClick={() => navigate('/historico')}

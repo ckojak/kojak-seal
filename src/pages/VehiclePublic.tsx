@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { FipeValue } from '@/components/FipeValue';
-import { Shield, CheckCircle2, Calendar, Gauge, Car, AlertCircle, Home, MessageCircle } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Calendar, Gauge, Car, AlertCircle, Home, MessageCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { calculateHealthScore, Manutencao } from '@/hooks/useManutencoes';
@@ -26,7 +26,6 @@ export default function VehiclePublic() {
         .select('*')
         .eq('id', id)
         .single();
-      
       if (error) throw error;
       return data as Veiculo;
     },
@@ -42,7 +41,6 @@ export default function VehiclePublic() {
         .select('*')
         .eq('veiculo_id', id)
         .order('data_selada', { ascending: false });
-      
       if (error) throw error;
       return data as Manutencao[];
     },
@@ -52,20 +50,17 @@ export default function VehiclePublic() {
   const healthScore = calculateHealthScore(manutencoes);
   const isLoading = loadingVeiculo || loadingManutencoes || authLoading;
 
-  // Access control: logged-in users can only view their own vehicles or if they're oficina
   const isOwner = veiculo && user ? veiculo.user_id === user.id : false;
-  const hasAccess = !user || isOwner || isOficina; // Non-logged-in users can view (public), owners can view, oficinas can view
+  const hasAccess = !user || isOwner || isOficina;
 
   const publicUrl = `${window.location.origin}/v/${id}`;
 
   const handleWhatsAppShare = () => {
     if (!veiculo) return;
-    
     const message = encodeURIComponent(
-      `Confira o histórico e valor do veículo ${veiculo.placa} selado no Kojak Auto-Log: ${publicUrl}`
+      `Confira o histórico e valor do veículo ${veiculo.placa} na Ficha do Carro: ${publicUrl}`
     );
-    const whatsappUrl = `https://wa.me/?text=${message}`;
-    window.open(whatsappUrl, '_blank');
+    window.open(`https://wa.me/?text=${message}`, '_blank');
   };
 
   if (isLoading) {
@@ -76,7 +71,6 @@ export default function VehiclePublic() {
     );
   }
 
-  // Redirect logged-in non-owners (non-oficina) to 403
   if (veiculo && user && !hasAccess) {
     navigate('/forbidden', { replace: true });
     return null;
@@ -85,17 +79,11 @@ export default function VehiclePublic() {
   if (veiculoError || !veiculo) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-pulse delay-1000" />
-        </div>
-
         <div className="relative z-10 text-center max-w-md">
           <div className="flex items-center justify-center gap-2 mb-8">
-            <Shield className="w-8 h-8 text-primary" />
+            <ShieldCheck className="w-8 h-8 text-primary" />
             <span className="text-xl font-bold text-foreground">
-              Kojak <span className="text-primary text-glow">Auto-Log</span>
+              Ficha do Carro
             </span>
           </div>
 
@@ -111,7 +99,6 @@ export default function VehiclePublic() {
           </p>
 
           <Button
-            variant="neon"
             size="lg"
             className="gap-2"
             onClick={() => navigate('/')}
@@ -129,8 +116,8 @@ export default function VehiclePublic() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-center gap-2">
-          <Shield className="w-6 h-6 text-primary" />
-          <span className="text-lg font-bold text-primary">Kojak Auto-Log</span>
+          <ShieldCheck className="w-6 h-6 text-primary" />
+          <span className="text-lg font-bold text-primary">Ficha do Carro</span>
         </div>
         <p className="text-xs text-center text-muted-foreground mt-1">
           Verificação Pública de Histórico
@@ -138,14 +125,14 @@ export default function VehiclePublic() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6">
-        {/* Vehicle Card */}
-        <div className="rounded-2xl bg-card border border-primary/30 shadow-neon p-6 mb-6">
+        {/* Vehicle Card - Ficha Técnica style */}
+        <div className="rounded-2xl bg-card border border-primary/30 shadow-elevated p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
               <Car className="w-7 h-7 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-mono font-bold text-primary text-glow tracking-wider">
+              <h1 className="text-2xl font-mono font-bold text-primary tracking-wider">
                 {veiculo.placa}
               </h1>
               <p className="text-foreground font-medium">
@@ -155,14 +142,14 @@ export default function VehiclePublic() {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Documento style with dividers */}
           <div className="grid grid-cols-3 gap-4 p-4 rounded-xl bg-secondary/30 border border-border mb-4">
-            <div className="text-center">
+            <div className="text-center border-r border-border last:border-r-0">
               <p className="text-2xl font-bold text-foreground">{manutencoes.length}</p>
               <p className="text-xs text-muted-foreground">Registros</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-primary text-glow">{healthScore}</p>
+            <div className="text-center border-r border-border last:border-r-0">
+              <p className="text-2xl font-bold text-primary">{healthScore}</p>
               <p className="text-xs text-muted-foreground">Health Score</p>
             </div>
             <div className="text-center">
@@ -175,7 +162,6 @@ export default function VehiclePublic() {
             </div>
           </div>
 
-          {/* FIPE Value */}
           <FipeValue 
             marca={veiculo.marca}
             modelo={veiculo.modelo}
@@ -194,9 +180,8 @@ export default function VehiclePublic() {
 
         {/* WhatsApp Share Button */}
         <Button
-          variant="seal"
           size="lg"
-          className="w-full gap-2 mb-6 bg-[#25D366] hover:bg-[#20bd5a] text-white border-[#25D366]"
+          className="w-full gap-2 mb-6 bg-[#25D366] hover:bg-[#20bd5a] text-white"
           onClick={handleWhatsAppShare}
         >
           <MessageCircle className="w-5 h-5" />
@@ -216,16 +201,14 @@ export default function VehiclePublic() {
             </div>
           ) : (
             <div className="space-y-3">
-              {manutencoes.map((manutencao, index) => (
+              {manutencoes.map((manutencao) => (
                 <div
                   key={manutencao.id}
                   className="relative pl-6 pb-4 border-l-2 border-border last:border-l-0 last:pb-0"
                 >
-                  {/* Timeline dot */}
                   <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-primary border-2 border-background" />
                   
                   <div className="rounded-xl bg-card border border-border p-4">
-                    {/* Header */}
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="text-sm font-medium text-foreground">
@@ -241,18 +224,15 @@ export default function VehiclePublic() {
                       </div>
                     </div>
 
-                    {/* Description */}
                     <p className="text-sm text-muted-foreground mb-2">
                       {manutencao.descricao}
                     </p>
 
-                    {/* KM */}
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Gauge className="w-3 h-3" />
                       <span>{manutencao.km_atual.toLocaleString()} km</span>
                     </div>
 
-                    {/* Photo */}
                     {manutencao.foto_url && (
                       <div className="mt-3">
                         <img
@@ -275,7 +255,7 @@ export default function VehiclePublic() {
             Todos os registros são imutáveis e verificados por timestamp do servidor
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Powered by <span className="text-primary font-medium">Kojak Auto-Log</span>
+            Powered by <span className="text-primary font-medium">Ficha do Carro</span>
           </p>
         </footer>
       </main>

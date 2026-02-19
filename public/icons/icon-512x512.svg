@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#080808"/>
-  <g transform="translate(256, 256)">
-    <circle cx="0" cy="0" r="180" fill="none" stroke="#00FF41" stroke-width="16"/>
-    <path d="M-60,-80 L-60,80 L60,0 Z" fill="#00FF41"/>
-    <path d="M0,-140 L40,-100 L0,-60 L-40,-100 Z" fill="#00FF41" opacity="0.6"/>
+  <rect width="512" height="512" fill="#1A365D"/>
+  <g transform="translate(256, 240)">
+    <!-- Shield shape -->
+    <path d="M0,-140 L120,-90 L120,40 Q120,120 0,160 Q-120,120 -120,40 L-120,-90 Z" fill="none" stroke="#FFFFFF" stroke-width="12"/>
+    <!-- Check mark -->
+    <path d="M-40,10 L-10,50 L50,-30" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Car silhouette -->
+    <path d="M-50,-40 L-30,-70 L30,-70 L50,-40" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
   </g>
-  <text x="256" y="420" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#00FF41" text-anchor="middle">KOJAK</text>
+  <text x="256" y="440" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#FFFFFF" text-anchor="middle">FICHA DO CARRO</text>
 </svg>
