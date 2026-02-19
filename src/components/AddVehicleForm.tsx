@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles } from 'lucide-react';
 import { usePlateAutoComplete } from '@/hooks/usePlateAutoComplete';
 import { toast } from 'sonner';
 
@@ -18,6 +17,7 @@ export interface VehicleFormData {
   modelo: string;
   ano: string;
   cor: string;
+  oficinaEmail?: string;
 }
 
 export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: AddVehicleFormProps) {
@@ -27,6 +27,7 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
     modelo: '',
     ano: '',
     cor: '',
+    oficinaEmail: '',
   });
 
   const { fetchByPlate, isLoading: isAutoCompleting } = usePlateAutoComplete();
@@ -47,40 +48,28 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
     }
   }, [formData.placa, formData.marca, formData.modelo, fetchByPlate]);
 
+  const updateField = (field: keyof VehicleFormData, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onSubmit(formData);
   };
 
-  const updateField = (field: keyof VehicleFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>Placa *</Label>
-        <div className="relative">
-          <Input
-            value={formData.placa}
-            onChange={(e) => updateField('placa', e.target.value.toUpperCase())}
-            onBlur={handlePlacaBlur}
-            placeholder="ABC-1234"
-            className="bg-secondary border-border rounded-xl"
-            required
-            maxLength={8}
-          />
-          {isAutoCompleting && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-primary">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-xs">Buscando...</span>
-            </div>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Sparkles className="w-3 h-3" />
-          Ao sair do campo, tentaremos preencher os dados automaticamente
-        </p>
+        <Label>Placa do Veículo</Label>
+        <Input
+          value={formData.placa}
+          onChange={(e) => updateField('placa', e.target.value)}
+          onBlur={handlePlacaBlur}
+          placeholder="ABC1234 ou ABC1D23"
+          className="bg-secondary border-border rounded-xl uppercase"
+          maxLength={7}
+          required
+        />
       </div>
       
       <div className="grid grid-cols-2 gap-4">
@@ -91,6 +80,7 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
             onChange={(e) => updateField('marca', e.target.value)}
             placeholder="Toyota"
             className="bg-secondary border-border rounded-xl"
+            required
           />
         </div>
         <div className="space-y-2">
@@ -100,6 +90,7 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
             onChange={(e) => updateField('modelo', e.target.value)}
             placeholder="Corolla"
             className="bg-secondary border-border rounded-xl"
+            required
           />
         </div>
       </div>
@@ -113,6 +104,7 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
             onChange={(e) => updateField('ano', e.target.value)}
             placeholder="2024"
             className="bg-secondary border-border rounded-xl"
+            required
           />
         </div>
         <div className="space-y-2">
@@ -122,14 +114,28 @@ export function AddVehicleForm({ onSubmit, isSubmitting, initialPlaca = '' }: Ad
             onChange={(e) => updateField('cor', e.target.value)}
             placeholder="Prata"
             className="bg-secondary border-border rounded-xl"
+            required
           />
         </div>
+      </div>
+
+      <div className="space-y-2 mt-4 p-4 bg-secondary/30 border border-border rounded-xl">
+        <Label className="text-primary">E-mail da Oficina (Opcional)</Label>
+        <Input
+          type="email"
+          value={formData.oficinaEmail}
+          onChange={(e) => updateField('oficinaEmail', e.target.value)}
+          placeholder="oficina@email.com"
+          className="bg-secondary border-border rounded-xl"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Se o carro for de um cliente, digite o e-mail da sua oficina para ter acesso ao veículo. Se você for o cliente, coloque o e-mail do seu mecânico de confiança.
+        </p>
       </div>
       
       <Button 
         type="submit" 
-        variant="seal" 
-        className="w-full" 
+        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 mt-6" 
         disabled={isSubmitting || isAutoCompleting}
       >
         {isSubmitting ? 'Salvando...' : 'Adicionar veículo'}
