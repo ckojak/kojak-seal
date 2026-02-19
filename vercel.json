@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/functions/:path*",
+      "destination": "https://uzfkgeeryxlsreocfvry.supabase.co/functions/v1/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
