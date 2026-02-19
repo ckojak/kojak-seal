@@ -56,7 +56,7 @@ export default function Certificado() {
     if (!veiculoAtual) return;
     
     const message = encodeURIComponent(
-      `Confira o histórico e valor do veículo ${veiculoAtual.placa} selado no Kojak Auto-Log: ${publicUrl}`
+      `Confira o histórico e valor do veículo ${veiculoAtual.placa} na Ficha do Carro: ${publicUrl}`
     );
     const whatsappUrl = `https://wa.me/?text=${message}`;
     window.open(whatsappUrl, '_blank');
@@ -119,7 +119,7 @@ export default function Certificado() {
               <div className="flex items-center gap-2">
                 <Shield className="w-6 h-6 text-primary" />
                 <span className="text-sm font-bold text-primary uppercase tracking-wider">
-                  Kojak Auto-Log
+                  Ficha do Carro
                 </span>
               </div>
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">

@@ -52,7 +52,7 @@ export function VerifiedBadge({
         >
           <div className="flex items-center gap-2 text-xs">
             <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            <span>Oficina Certificada pelo Kojak Auto-Log</span>
+            <span>Oficina Certificada pelo Ficha do Carro</span>
           </div>
         </TooltipContent>
       </Tooltip>

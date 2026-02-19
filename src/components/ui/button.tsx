@@ -9,16 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-neon",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-border bg-transparent hover:bg-secondary hover:text-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-secondary hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Kojak custom variants
-        neon: "bg-primary text-primary-foreground shadow-neon hover:shadow-neon-intense active:scale-95",
-        seal: "bg-gradient-to-r from-primary to-emerald-400 text-primary-foreground shadow-neon hover:shadow-neon-intense active:scale-95",
-        glass: "glass-dark text-foreground hover:bg-secondary/50",
+        // Custom variants
+        neon: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95",
+        seal: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:scale-95",
+        glass: "glass text-foreground hover:bg-secondary/50",
       },
       size: {
         default: "h-10 px-4 py-2",

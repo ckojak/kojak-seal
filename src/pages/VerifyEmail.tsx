@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Mail, Clock, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Mail, Clock, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -91,9 +91,9 @@ export default function VerifyEmail() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Shield className="w-8 h-8 text-primary" />
+          <ShieldCheck className="w-8 h-8 text-primary" />
           <span className="text-xl font-bold text-foreground">
-            Kojak <span className="text-primary text-glow">Auto-Log</span>
+            Ficha do Carro
           </span>
         </div>
 

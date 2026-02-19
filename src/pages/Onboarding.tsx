@@ -52,7 +52,7 @@ export default function Onboarding() {
         .eq('user_id', user!.id);
 
       if (error) throw error;
-      toast.success('Bem-vindo ao Kojak Auto-Log!');
+      toast.success('Bem-vindo ao Ficha do Carro!');
       navigate('/dashboard', { replace: true });
     } catch (error: any) {
       toast.error(error.message || 'Erro ao salvar perfil');
@@ -117,13 +117,13 @@ export default function Onboarding() {
       {/* Logo */}
       <div className="flex flex-col items-center mb-8 animate-fade-in">
         <div className="relative w-16 h-16 mb-3">
-          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-glow" />
-          <div className="absolute inset-2 rounded-full bg-card border-2 border-primary flex items-center justify-center">
+          <div className="absolute inset-0 rounded-2xl bg-primary/10" />
+          <div className="absolute inset-2 rounded-xl bg-card border-2 border-primary flex items-center justify-center">
             <Shield className="w-6 h-6 text-primary" />
           </div>
         </div>
         <h1 className="text-2xl font-bold text-foreground">
-          Kojak <span className="text-primary text-glow">Auto-Log</span>
+          Ficha do Carro
         </h1>
       </div>
 
@@ -132,7 +132,7 @@ export default function Onboarding() {
         {!userType && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-foreground text-center mb-6">
-              Como você vai usar o Auto-Log?
+              Como você vai usar o Ficha do Carro?
             </h2>
             
             <button

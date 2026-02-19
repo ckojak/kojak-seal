@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useEffect } from "react";
 
 // Pages
 import AuthPage from "./pages/AuthPage";
@@ -21,6 +22,21 @@ import Forbidden from "./pages/Forbidden";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Initialize theme from localStorage or system preference
+function ThemeInitializer() {
+  useEffect(() => {
+    const stored = localStorage.getItem('ficha-do-carro-theme');
+    if (stored === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (stored === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+  return null;
+}
 
 // Auth redirect component
 function AuthRedirect() {
@@ -45,14 +61,14 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
+        <ThemeInitializer />
         <Toaster />
-        <Sonner position="top-center" theme="dark" />
+        <Sonner position="top-center" />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<AuthRedirect />} />
             <Route path="/auth" element={<AuthRedirect />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
-            {/* Rota pública para verificação de histórico */}
             <Route path="/v/:id" element={<VehiclePublic />} />
             <Route path="/onboarding" element={
               <ProtectedRoute><Onboarding /></ProtectedRoute>

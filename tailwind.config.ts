@@ -50,18 +50,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Kojak custom colors
-        carbon: {
-          black: "hsl(var(--carbon-black))",
-          deep: "hsl(var(--carbon-deep))",
+        // Ficha do Carro custom colors
+        navy: {
+          DEFAULT: "hsl(var(--navy))",
+          light: "hsl(var(--navy-light))",
         },
-        dark: {
-          gray: "hsl(var(--dark-gray))",
-        },
-        neon: {
-          green: "hsl(var(--neon-green))",
-          dim: "hsl(var(--neon-green-dim))",
-        },
+        silver: "hsl(var(--silver))",
         seal: {
           verified: "hsl(var(--seal-verified))",
         },
@@ -84,8 +78,6 @@ export default {
         "2xl": "1.5rem",
       },
       boxShadow: {
-        neon: "var(--shadow-neon)",
-        "neon-intense": "var(--shadow-neon-intense)",
         card: "var(--shadow-card)",
         elevated: "var(--shadow-elevated)",
       },
@@ -104,8 +96,8 @@ export default {
           "100%": { transform: "scale(1) rotate(0deg)", opacity: "1" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(134 100% 50% / 0.3)" },
-          "50%": { boxShadow: "0 0 30px hsl(134 100% 50% / 0.5), 0 0 50px hsl(134 100% 50% / 0.2)" },
+          "0%, 100%": { boxShadow: "0 0 12px hsl(var(--primary) / 0.2)" },
+          "50%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.3)" },
         },
         "slide-up": {
           from: { transform: "translateY(20px)", opacity: "0" },

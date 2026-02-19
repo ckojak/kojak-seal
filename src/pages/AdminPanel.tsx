@@ -189,7 +189,7 @@ export default function AdminPanel() {
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Gerencie oficinas verificadas, assinaturas e usuários do Kojak Auto-Log
+            Gerencie oficinas verificadas, assinaturas e usuários do Ficha do Carro
           </p>
         </div>
 
