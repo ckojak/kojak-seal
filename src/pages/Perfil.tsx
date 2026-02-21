@@ -2,68 +2,249 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
+import { useVeiculos } from '@/hooks/useVeiculos';
+import { useManutencoes } from '@/hooks/useManutencoes';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, LogOut, Wrench, Shield, Save, Loader2, Settings } from 'lucide-react';
+import { 
+  User, Mail, LogOut, Car, Wrench, Shield, 
+  Bell, Settings, Building2, MapPin, Phone, Save, Loader2 
+} from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { NotificationSettings } from '@/components/NotificationSettings';
 
 export default function Perfil() {
   const { user, signOut } = useAuth();
   const { profile, isOficina, isCEO } = useCurrentProfile();
+  const { data: veiculos = [] } = useVeiculos();
+  const { data: manutencoes = [] } = useManutencoes();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ razaoSocial: '', cnpj: '', endereco: '', telefone: '' });
 
+  // Estado para os campos profissionais
+  const [formData, setFormData] = useState({
+    razaoSocial: '',
+    cnpj: '',
+    endereco: '',
+    telefone: '',
+  });
+
+  // Sincroniza os dados do banco com o formulário quando carrega
   useEffect(() => {
-    if (profile) setForm({ razaoSocial: profile.razao_social || '', cnpj: profile.cnpj || '', endereco: profile.endereco || '', telefone: profile.telefone || '' });
+    if (profile) {
+      setFormData({
+        razaoSocial: profile.razao_social || '',
+        cnpj: profile.cnpj || '',
+        endereco: profile.endereco || '',
+        telefone: profile.telefone || '',
+      });
+    }
   }, [profile]);
 
-  const handleSave = async () => {
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso');
+    navigate('/');
+  };
+
+  const handleSaveWorkshopData = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.from('profiles').update({ razao_social: form.razaoSocial, cnpj: form.cnpj, endereco: form.endereco, telefone: form.telefone }).eq('user_id', user?.id);
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          razao_social: formData.razaoSocial,
+          cnpj: formData.cnpj,
+          endereco: formData.endereco,
+          telefone: formData.telefone,
+          display_name: formData.razaoSocial || profile?.display_name,
+        })
+        .eq('user_id', user?.id);
+
       if (error) throw error;
-      toast.success('Perfil atualizado!');
-    } catch (error) { toast.error('Erro ao salvar'); } finally { setLoading(false); }
+      toast.success('Ficha da oficina atualizada!');
+    } catch (error) {
+      toast.error('Erro ao salvar dados');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AppLayout>
-      <div className="px-4 py-8 max-w-lg mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Meu Perfil</h1>
-          <Button onClick={signOut} variant="ghost" className="text-destructive"><LogOut className="w-5 h-5" /></Button>
+      <div className="px-4 pt-6 pb-24 max-w-lg mx-auto">
+        {/* Header Identidade */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+            <User className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Meu Perfil</h1>
+            <p className="text-sm text-muted-foreground">Configurações da conta</p>
+          </div>
         </div>
 
-        <div className="p-6 bg-card border border-border rounded-[2rem] flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center"><User className="w-8 h-8 text-primary" /></div>
-          <div><h2 className="font-bold">{profile?.display_name}</h2><p className="text-xs text-muted-foreground">{user?.email}</p></div>
+        {/* Card do Usuário (Baseado no seu original) */}
+        <div className="bg-card border border-border rounded-2xl p-5 mb-6 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/10">
+              <User className="w-8 h-8 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-foreground truncate">{profile?.display_name || 'Usuário'}</h2>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <Mail className="w-3 h-3" />
+                <span className="truncate">{user?.email}</span>
+              </div>
+              {profile?.is_verified && (
+                <div className="mt-2 flex items-center gap-1 text-green-500">
+                  <Shield className="w-3 h-3 fill-current" />
+                  <span className="text-[10px] font-black uppercase tracking-wider">Verificado</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
+        {/* Estatísticas (Mantendo seu original) */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Car className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-foreground">{veiculos.length}</p>
+                <p className="text-[10px] uppercase text-muted-foreground">Veículos</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Wrench className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-foreground">{manutencoes.length}</p>
+                <p className="text-[10px] uppercase text-muted-foreground">Registros</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CONFIGURAÇÕES PROFISSIONAIS (SÓ PARA OFICINA OU CEO) */}
         {(isOficina || isCEO) && (
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Ficha da Oficina</h3>
-            <div className="bg-card border border-border p-6 rounded-[2rem] space-y-4">
-              <div className="space-y-1"><Label className="text-[10px]">RAZÃO SOCIAL</Label><Input value={form.razaoSocial} onChange={e => setForm({...form, razaoSocial: e.target.value})} className="bg-secondary" /></div>
-              <div className="space-y-1"><Label className="text-[10px]">CNPJ</Label><Input value={form.cnpj} onChange={e => setForm({...form, cnpj: e.target.value})} className="bg-secondary" /></div>
-              <div className="space-y-1"><Label className="text-[10px]">ENDEREÇO</Label><Input value={form.endereco} onChange={e => setForm({...form, endereco: e.target.value})} className="bg-secondary" /></div>
-              <div className="space-y-1"><Label className="text-[10px]">WHATSAPP</Label><Input value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} className="bg-secondary" /></div>
-              <Button onClick={handleSave} className="w-full h-12 rounded-2xl gap-2" disabled={loading}>{loading ? <Loader2 className="animate-spin" /> : <><Save className="w-4 h-4" /> Salvar</>}</Button>
+          <div className="mb-8 animate-fade-in">
+            <div className="flex items-center gap-2 mb-4 px-1">
+              <Settings className="w-4 h-4 text-primary" />
+              <h3 className="font-bold text-xs uppercase tracking-[0.2em] text-muted-foreground">Ficha Profissional</h3>
+            </div>
+            
+            <div className="bg-card border border-border rounded-[2rem] p-6 space-y-4 shadow-sm">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground ml-1">Razão Social / Nome Fantasia</Label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                  <Input 
+                    value={formData.razaoSocial} 
+                    onChange={e => setFormData({...formData, razaoSocial: e.target.value})}
+                    className="pl-10 bg-secondary/50 border-none rounded-xl h-12"
+                    placeholder="Nome da sua Oficina"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground ml-1">CNPJ</Label>
+                  <Input 
+                    value={formData.cnpj} 
+                    onChange={e => setFormData({...formData, cnpj: e.target.value})}
+                    className="bg-secondary/50 border-none rounded-xl h-12"
+                    placeholder="00.000.000/0001-00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground ml-1">WhatsApp de Contato</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                    <Input 
+                      value={formData.telefone} 
+                      onChange={e => setFormData({...formData, telefone: e.target.value})}
+                      className="pl-10 bg-secondary/50 border-none rounded-xl h-12"
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground ml-1">Endereço Completo</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                  <Input 
+                    value={formData.endereco} 
+                    onChange={e => setFormData({...formData, endereco: e.target.value})}
+                    className="pl-10 bg-secondary/50 border-none rounded-xl h-12"
+                    placeholder="Rua, Número, Bairro, Cidade - UF"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleSaveWorkshopData} 
+                className="w-full h-14 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10" 
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
+                Salvar Dados da Oficina
+              </Button>
             </div>
           </div>
         )}
 
+        {/* Notificações (Mantendo seu original) */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4 px-1">
+            <Bell className="w-4 h-4 text-primary" />
+            <h3 className="font-bold text-xs uppercase tracking-[0.2em] text-muted-foreground">Notificações</h3>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-2">
+            <NotificationSettings />
+          </div>
+        </div>
+
+        {/* Painel CEO (Link Exclusivo) */}
         {isCEO && (
-          <Link to="/admin" className="block p-5 bg-primary/5 border border-primary/20 rounded-2xl hover:bg-primary/10 transition-all">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3"><Settings className="w-5 h-5 text-primary" /><div className="font-bold text-primary">Painel do CEO</div></div>
-              <ShieldCheck className="w-5 h-5 text-primary" />
+          <Link to="/admin" className="block mb-8 group">
+            <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-5 flex items-center justify-between group-hover:bg-primary/10 transition-all">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                  <Settings className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-primary">Painel do CEO</h3>
+                  <p className="text-[10px] text-muted-foreground uppercase font-black">Gestão Total do Sistema</p>
+                </div>
+              </div>
+              <Shield className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
             </div>
           </Link>
         )}
+
+        {/* Botão Sair */}
+        <Button
+          variant="outline"
+          size="lg"
+          className="w-full h-14 rounded-2xl gap-2 text-destructive border-destructive/20 hover:bg-destructive/5 font-bold"
+          onClick={handleSignOut}
+        >
+          <LogOut className="w-5 h-5" />
+          Sair da Conta
+        </Button>
       </div>
     </AppLayout>
   );
