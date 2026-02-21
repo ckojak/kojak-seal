@@ -20,6 +20,7 @@ interface ProfileWithSubscription {
   user_id: string;
   display_name: string | null;
   is_verified: boolean;
+  user_type: string | null; // Adicionado para sincronia
   created_at: string;
   subscription_status: 'active' | 'inactive' | 'free';
   subscription_expires_at: string | null;
@@ -59,22 +60,27 @@ export default function AdminPanel() {
   const toggleVerification = async (profileId: string, currentStatus: boolean) => {
     setUpdating(profileId);
     try {
+      // EDIÇÃO CIRÚRGICA: Atualiza verificação e tipo de utilizador ao mesmo tempo
+      const nextStatus = !currentStatus;
       const { error } = await supabase
         .from('profiles')
-        .update({ is_verified: !currentStatus })
+        .update({ 
+          is_verified: nextStatus,
+          user_type: nextStatus ? 'oficina' : 'cliente' 
+        })
         .eq('id', profileId);
 
       if (error) throw error;
 
       setProfiles(prev =>
         prev.map(p =>
-          p.id === profileId ? { ...p, is_verified: !currentStatus } : p
+          p.id === profileId ? { ...p, is_verified: nextStatus, user_type: nextStatus ? 'oficina' : 'cliente' } : p
         )
       );
 
       toast.success(
-        !currentStatus 
-          ? 'Oficina verificada com sucesso!' 
+        nextStatus 
+          ? 'Oficina verificada e acesso liberado!' 
           : 'Verificação removida'
       );
     } catch (error) {
@@ -180,7 +186,6 @@ export default function AdminPanel() {
   return (
     <AppLayout showNav={false}>
       <div className="min-h-screen bg-background p-4 md:p-8">
-        {/* Header */}
         <div className="max-w-7xl mx-auto mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-8 h-8 text-primary" />
@@ -193,74 +198,56 @@ export default function AdminPanel() {
           </p>
         </div>
 
-        {/* Stats Cards */}
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total de Usuários
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground text-foreground">Total de Usuários</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold text-foreground">
-                  {profiles.length}
-                </span>
+                <span className="text-2xl font-bold text-foreground">{profiles.length}</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Oficinas Verificadas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground text-foreground">Oficinas Verificadas</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold text-primary">
-                  {profiles.filter(p => p.is_verified).length}
-                </span>
+                <span className="text-2xl font-bold text-primary">{profiles.filter(p => p.is_verified).length}</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Assinaturas Ativas
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground text-foreground">Assinaturas Ativas</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold text-primary">
-                  {profiles.filter(p => p.subscription_status === 'active').length}
-                </span>
+                <span className="text-2xl font-bold text-primary">{profiles.filter(p => p.subscription_status === 'active').length}</span>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Usuários Bloqueados
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground text-foreground">Usuários Bloqueados</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
                 <Ban className="w-5 h-5 text-destructive" />
-                <span className="text-2xl font-bold text-destructive">
-                  {profiles.filter(p => p.subscription_status === 'inactive').length}
-                </span>
+                <span className="text-2xl font-bold text-destructive">{profiles.filter(p => p.subscription_status === 'inactive').length}</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Users Table */}
         <div className="max-w-7xl mx-auto">
           <Card className="bg-card border-border">
             <CardHeader>
@@ -301,7 +288,7 @@ export default function AdminPanel() {
                           <TableCell>
                             {getSubscriptionBadge(profile)}
                           </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
+                          <TableCell className="text-muted-foreground text-sm text-foreground">
                             {profile.subscription_expires_at ? (
                               <div className="flex items-center gap-1.5">
                                 <Clock className="w-3.5 h-3.5" />
@@ -325,31 +312,13 @@ export default function AdminPanel() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => activateSubscription(profile.id, 30)}
-                                disabled={updating === profile.id}
-                                className="text-xs h-8"
-                              >
+                              <Button size="sm" variant="outline" onClick={() => activateSubscription(profile.id, 30)} disabled={updating === profile.id} className="text-xs h-8">
                                 +30 Dias
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => activateSubscription(profile.id, 365)}
-                                disabled={updating === profile.id}
-                                className="text-xs h-8"
-                              >
+                              <Button size="sm" variant="outline" onClick={() => activateSubscription(profile.id, 365)} disabled={updating === profile.id} className="text-xs h-8">
                                 +1 Ano
                               </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => blockSubscription(profile.id)}
-                                disabled={updating === profile.id || profile.subscription_status === 'inactive'}
-                                className="text-xs h-8"
-                              >
+                              <Button size="sm" variant="destructive" onClick={() => blockSubscription(profile.id)} disabled={updating === profile.id || profile.subscription_status === 'inactive'} className="text-xs h-8">
                                 <Ban className="w-3.5 h-3.5" />
                               </Button>
                             </div>
@@ -364,12 +333,8 @@ export default function AdminPanel() {
           </Card>
         </div>
 
-        {/* Back Link */}
         <div className="max-w-7xl mx-auto mt-6">
-          <a 
-            href="/dashboard" 
-            className="text-muted-foreground hover:text-primary transition-colors text-sm"
-          >
+          <a href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors text-sm">
             ← Voltar ao Dashboard
           </a>
         </div>
