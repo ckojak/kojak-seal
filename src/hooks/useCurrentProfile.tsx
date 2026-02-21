@@ -6,6 +6,7 @@ const CEO_EMAIL = 'bmw.reta@hotmail.com';
 
 export function useCurrentProfile() {
   const { user } = useAuth();
+  const isCEO = user?.email?.toLowerCase() === CEO_EMAIL.toLowerCase();
 
   const query = useQuery({
     queryKey: ['current-profile', user?.id],
@@ -22,22 +23,16 @@ export function useCurrentProfile() {
     enabled: !!user,
   });
 
-  // LÓGICA DE PODER ABSOLUTO (CEO BYPASS)
-  const isCEO = user?.email?.toLowerCase() === CEO_EMAIL.toLowerCase();
-  
-  // Se for CEO, isOficina e isVerified são SEMPRE true
-  const isOficina = isCEO || (query.data?.user_type === 'oficina');
-  const isVerified = isCEO || (query.data?.is_verified === true);
-  
-  // Liberar busca de placa e todas as ferramentas premium
-  const canSearchPlates = isCEO || (isOficina && !!query.data?.cnpj);
+  // Regra Universal: Oficina Validada ou CEO
+  const isVerifiedOficina = query.data?.user_type === 'oficina' && query.data?.is_verified === true;
+  const isOficina = isCEO || isVerifiedOficina;
 
   return {
     ...query,
     profile: query.data,
     isCEO,
-    isOficina: isOficina && isVerified, // Para usuários normais, precisa de ambos. Para CEO, isCEO já resolveu acima.
-    canSearchPlates,
-    isVerified,
+    isOficina,
+    isVerified: isCEO || query.data?.is_verified === true,
+    canSearchPlates: isCEO || (isOficina && !!query.data?.cnpj),
   };
 }
