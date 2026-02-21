@@ -2,16 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-export interface CurrentProfile {
-  id: string;
-  user_id: string;
-  user_type: string | null;
-  cnpj: string | null;
-  display_name: string | null;
-  is_verified: boolean;
-  onboarding_completed: boolean | null;
-  subscription_status: string;
-}
+const CEO_EMAIL = 'bmw.reta@hotmail.com';
 
 export function useCurrentProfile() {
   const { user } = useAuth();
@@ -20,27 +11,33 @@ export function useCurrentProfile() {
     queryKey: ['current-profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-
-      const { data, error } = await query;
-      // ... (mantém a lógica de busca do seu arquivo original)
-      return data as CurrentProfile;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
     },
-    // ...
+    enabled: !!user,
   });
 
-  // A MÁGICA DE GIGANTE ESTÁ AQUI:
-  // Só é considerado "Oficina" com poder de selagem se:
-  // 1. O tipo for oficina E 2. Você deu o OK no Admin (is_verified)
-  const isOficina = query.data?.user_type === 'oficina' && query.data?.is_verified === true;
+  // LÓGICA DE PODER ABSOLUTO (CEO BYPASS)
+  const isCEO = user?.email?.toLowerCase() === CEO_EMAIL.toLowerCase();
   
-  const hasCnpj = !!query.data?.cnpj;
-  const canSearchPlates = isOficina && hasCnpj;
+  // Se for CEO, isOficina e isVerified são SEMPRE true
+  const isOficina = isCEO || (query.data?.user_type === 'oficina');
+  const isVerified = isCEO || (query.data?.is_verified === true);
+  
+  // Liberar busca de placa e todas as ferramentas premium
+  const canSearchPlates = isCEO || (isOficina && !!query.data?.cnpj);
 
   return {
     ...query,
     profile: query.data,
-    isOficina, // Agora isso depende do seu clique no Admin
-    hasCnpj,
+    isCEO,
+    isOficina: isOficina && isVerified, // Para usuários normais, precisa de ambos. Para CEO, isCEO já resolveu acima.
     canSearchPlates,
+    isVerified,
   };
 }
