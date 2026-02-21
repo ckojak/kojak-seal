@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, Stamp, Loader2, Search, ShieldCheck } from 'lucide-react';
+import { Camera, Stamp, Loader2, Search, ShieldCheck, Car, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SelarManutencao() {
@@ -27,101 +27,184 @@ export default function SelarManutencao() {
   const [fotoPeca, setFotoPeca] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // REGRA DE ACESSO: CEO ou Oficina Verificada com Plano Ativo
   const canSeal = isCEO || (isOficina && sub?.canUsePremiumFeatures);
 
-  const findCar = async () => {
-    if (searchPlate.length < 7) return;
-    setLoading(true);
-    const { data } = await supabase.from('veiculos').select('*').eq('placa', searchPlate.toUpperCase()).maybeSingle();
-    if (data) {
-      setVeiculo(data);
-      toast.success("Carro identificado para selagem");
-    } else {
-      toast.error("Carro não encontrado. Peça ao cliente para cadastrar primeiro.");
-    }
-    setLoading(false);
-  };
-
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!veiculo) return toast.error("Busque um veículo primeiro");
-    if (!fotoServico || !fotoPeca) return toast.error("Fotos obrigatórias!");
+  const handleSearchVehicle = async () => {
+    if (searchPlate.length < 7) return toast.error("Digite a placa completa");
     
     setLoading(true);
     try {
-      const url1 = await uploadFoto.mutateAsync(fotoServico);
-      const url2 = await uploadFoto.mutateAsync(fotoPeca);
-      
-      await createManutencao.mutateAsync({
-        veiculo_id: veiculo.id,
-        km_atual: parseInt(kmAtual),
-        descricao,
-        foto_url: url1,
-        foto_peca_url: url2,
-        oficina: profile?.razao_social || 'Oficina Verificada'
-      });
+      const { data, error } = await supabase
+        .from('veiculos')
+        .select('*')
+        .ilike('placa', searchPlate.trim())
+        .maybeSingle();
 
-      toast.success("Selo aplicado com sucesso!");
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error("Erro ao selar");
+      if (error) throw error;
+
+      if (data) {
+        setVeiculo(data);
+        toast.success("Veículo localizado na base global!");
+      } else {
+        setVeiculo(null);
+        toast.error("Placa não encontrada. O cliente deve cadastrar o carro primeiro.");
+      }
+    } catch (err) {
+      toast.error("Erro ao consultar base de dados");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!canSeal) return <AppLayout><div className="p-10 text-center font-bold">Acesso Negado</div></AppLayout>;
+  const handleFinalizeSeal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!veiculo) return;
+    if (!fotoServico || !fotoPeca) return toast.error("As duas fotos são obrigatórias para o selo.");
+
+    setLoading(true);
+    try {
+      // Upload das evidências (Serviço + Peça/Nota)
+      const urlServico = await uploadFoto.mutateAsync(fotoServico);
+      const urlPeca = await uploadFoto.mutateAsync(fotoPeca);
+
+      await createManutencao.mutateAsync({
+        veiculo_id: veiculo.id,
+        km_atual: parseInt(kmAtual),
+        descricao,
+        foto_url: urlServico,
+        foto_peca_url: urlPeca,
+        oficina: profile?.razao_social || 'Oficina Verificada'
+      });
+
+      toast.success("MANUTENÇÃO SELADA COM SUCESSO!");
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error("Falha ao aplicar selo imutável.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!canSeal) {
+    return (
+      <AppLayout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
+          <AlertCircle className="w-16 h-16 text-destructive/30 mb-4" />
+          <h2 className="text-xl font-bold">Acesso Restrito</h2>
+          <p className="text-sm text-muted-foreground mt-2">
+            Apenas oficinas verificadas com plano ativo podem selar manutenções na rede.
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
-      <div className="px-4 py-8 max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold mb-8 flex items-center gap-2"><Stamp className="text-primary" /> Selagem Profissional</h1>
-        
-        {/* BUSCA DO CARRO */}
-        <div className="mb-8 flex gap-2">
-          <Input 
-            placeholder="PLACA DO CLIENTE..." 
-            value={searchPlate} 
-            onChange={e => setSearchPlate(e.target.value.toUpperCase())}
-            className="h-12 bg-secondary rounded-xl font-bold"
-          />
-          <Button onClick={findCar} disabled={loading} className="h-12 rounded-xl"><Search /></Button>
+      <div className="px-4 pt-6 pb-24 max-w-lg mx-auto">
+        <div className="flex items-center gap-2 mb-8">
+          <Stamp className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold">Selar Manutenção</h1>
         </div>
 
-        {veiculo && (
-          <form onSubmit={handleUpload} className="space-y-6 animate-in fade-in">
-            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 flex items-center gap-3">
-              <ShieldCheck className="text-primary" />
-              <p className="text-sm font-bold text-primary">{veiculo.marca} {veiculo.modelo} ({veiculo.placa})</p>
+        {/* BUSCA GLOBAL POR PLACA */}
+        <div className="space-y-4 mb-8">
+          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+            Pesquisar Veículo no App
+          </Label>
+          <div className="flex gap-2">
+            <Input 
+              placeholder="DIGITE A PLACA (EX: ABC1D23)" 
+              value={searchPlate}
+              onChange={(e) => setSearchPlate(e.target.value.toUpperCase())}
+              className="h-14 bg-secondary border-none rounded-2xl font-mono text-lg font-bold"
+            />
+            <Button 
+              onClick={handleSearchVehicle} 
+              disabled={loading}
+              className="h-14 w-14 rounded-2xl shrink-0"
+            >
+              {loading ? <Loader2 className="animate-spin" /> : <Search />}
+            </Button>
+          </div>
+        </div>
+
+        {/* FORMULÁRIO DE SELAGEM (Só aparece se achar o carro) */}
+        {veiculo ? (
+          <form onSubmit={handleFinalizeSeal} className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+            {/* Info do Carro Localizado */}
+            <div className="bg-primary/5 border border-primary/20 rounded-[2rem] p-6 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Car className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-primary tracking-widest">Veículo Identificado</p>
+                <h3 className="font-bold text-lg">{veiculo.marca} {veiculo.modelo}</h3>
+                <p className="text-xs font-mono text-muted-foreground">{veiculo.placa}</p>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label>KM Atual</Label>
-              <Input type="number" value={kmAtual} onChange={e => setKmAtual(e.target.value)} className="bg-secondary h-12 rounded-xl" required />
+              <Label>Kilometragem Atual (KM)</Label>
+              <Input 
+                type="number" 
+                value={kmAtual} 
+                onChange={e => setKmAtual(e.target.value)} 
+                className="h-12 bg-secondary rounded-xl border-none" 
+                required 
+              />
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição do Serviço</Label>
-              <Textarea value={descricao} onChange={e => setDescricao(e.target.value)} className="bg-secondary rounded-xl" required />
+              <Label>Descrição Detalhada do Serviço</Label>
+              <Textarea 
+                value={descricao} 
+                onChange={e => setDescricao(e.target.value)} 
+                className="bg-secondary rounded-xl border-none min-h-[100px]" 
+                placeholder="O que foi feito no veículo?"
+                required 
+              />
             </div>
 
+            {/* Upload de Provas Digitais */}
             <div className="grid grid-cols-2 gap-4">
-              <label className="h-24 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer bg-secondary/50">
-                <Camera className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] mt-1">{fotoServico ? 'OK' : 'Foto Serviço'}</span>
-                <input type="file" className="hidden" onChange={e => setFotoServico(e.target.files?.[0] || null)} />
-              </label>
-              <label className="h-24 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center cursor-pointer bg-secondary/50">
-                <Camera className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] mt-1">{fotoPeca ? 'OK' : 'Foto Peça/Nota'}</span>
-                <input type="file" className="hidden" onChange={e => setFotoPeca(e.target.files?.[0] || null)} />
-              </label>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase ml-1">Foto do Serviço</Label>
+                <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-border rounded-2xl cursor-pointer bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                  <span className="text-[10px] mt-2 text-center px-2">
+                    {fotoServico ? '✅ Carregada' : 'Foto do Carro na Oficina'}
+                  </span>
+                  <input type="file" className="hidden" accept="image/*" onChange={e => setFotoServico(e.target.files?.[0] || null)} />
+                </label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold uppercase ml-1">Peça / Nota</Label>
+                <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-border rounded-2xl cursor-pointer bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                  <span className="text-[10px] mt-2 text-center px-2">
+                    {fotoPeca ? '✅ Carregada' : 'Foto da Peça ou NF'}
+                  </span>
+                  <input type="file" className="hidden" accept="image/*" onChange={e => setFotoPeca(e.target.files?.[0] || null)} />
+                </label>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full h-14 rounded-2xl font-bold" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" /> : 'Selo de Confiança'}
+            <Button 
+              type="submit" 
+              className="w-full h-16 rounded-2xl font-black text-lg gap-3 shadow-xl shadow-primary/20" 
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="animate-spin" /> : <><ShieldCheck className="w-6 h-6" /> APLICAR SELO DIGITAL</>}
             </Button>
           </form>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-border rounded-[2rem] opacity-50">
+            <Car className="w-12 h-12 mb-4" />
+            <p className="text-sm">Busque uma placa para liberar o formulário de selagem.</p>
+          </div>
         )}
       </div>
     </AppLayout>
