@@ -21,30 +21,25 @@ export function useCurrentProfile() {
     queryFn: async () => {
       if (!user) return null;
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, user_id, user_type, cnpj, display_name, is_verified, onboarding_completed, subscription_status')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw error;
-      }
+      const { data, error } = await query;
+      // ... (mantém a lógica de busca do seu arquivo original)
       return data as CurrentProfile;
     },
-    enabled: !!user,
-    staleTime: 1000 * 60 * 5,
+    // ...
   });
 
-  const isOficina = query.data?.user_type === 'oficina';
+  // A MÁGICA DE GIGANTE ESTÁ AQUI:
+  // Só é considerado "Oficina" com poder de selagem se:
+  // 1. O tipo for oficina E 2. Você deu o OK no Admin (is_verified)
+  const isOficina = query.data?.user_type === 'oficina' && query.data?.is_verified === true;
+  
   const hasCnpj = !!query.data?.cnpj;
   const canSearchPlates = isOficina && hasCnpj;
 
   return {
     ...query,
     profile: query.data,
-    isOficina,
+    isOficina, // Agora isso depende do seu clique no Admin
     hasCnpj,
     canSearchPlates,
   };
