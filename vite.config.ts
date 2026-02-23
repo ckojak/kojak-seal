@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "NAO PEGAR TAGGER";
+import { componentTagger } from "/icon-167x167.png";
 import { VitePWA } from "vite-plugin-pwa"; // NOVO: Motor PWA importado
 
 // https://vitejs.dev/config/
