@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Car, Wrench, Shield, Building2, Phone, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Car, Wrench, Shield, Building2, Phone, MapPin, Loader2, CheckCircle2, Lock, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Onboarding() {
@@ -14,12 +15,14 @@ export default function Onboarding() {
   const [userType, setUserType] = useState<'cliente' | 'oficina' | null>(null);
   const [loading, setLoading] = useState(false);
   const [verifyingCnpj, setVerifyingCnpj] = useState(false);
+  const [isLocked, setIsLocked] = useState(false); // Trava da Receita
+  const [acceptedTerms, setAcceptedTerms] = useState(false); // Trava Jurídica
   const [form, setForm] = useState({ cnpj: '', razaoSocial: '', endereco: '', telefone: '' });
 
   // Monitor de Verificação Automática de CNPJ
   useEffect(() => {
     const cleanCnpj = form.cnpj.replace(/\D/g, '');
-    if (cleanCnpj.length === 14 && userType === 'oficina') {
+    if (cleanCnpj.length === 14 && userType === 'oficina' && !isLocked) {
       handleVerifyCnpj(cleanCnpj);
     }
   }, [form.cnpj]);
@@ -37,6 +40,7 @@ export default function Onboarding() {
           razaoSocial: data.razao_social || data.nome_fantasia,
           endereco: `${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio} - ${data.uf}`
         }));
+        setIsLocked(true); // TRANCA OS DADOS DA RECEITA
         toast.success("Oficina validada na Receita Federal!");
       } else {
         toast.error("Este CNPJ não está ATIVO na Receita.");
@@ -132,10 +136,12 @@ export default function Onboarding() {
                 <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <Input 
                   value={form.cnpj} 
-                  onChange={e => setForm({...form, cnpj: e.target.value})} 
+                  onChange={e => !isLocked && setForm({...form, cnpj: e.target.value})} 
+                  disabled={isLocked}
                   placeholder="00.000.000/0001-00" 
-                  className="bg-slate-950 border-slate-800 h-14 pl-11 rounded-2xl text-white focus-visible:ring-primary/30"
+                  className={`bg-slate-950 border-slate-800 h-14 pl-11 rounded-2xl text-white focus-visible:ring-primary/30 ${isLocked ? 'opacity-60' : ''}`}
                 />
+                {isLocked && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />}
               </div>
             </div>
 
@@ -144,7 +150,8 @@ export default function Onboarding() {
               <Input 
                 value={form.razaoSocial} 
                 onChange={e => setForm({...form, razaoSocial: e.target.value})} 
-                className="bg-slate-950 border-slate-800 h-14 rounded-2xl text-white"
+                readOnly={isLocked}
+                className={`bg-slate-950 border-slate-800 h-14 rounded-2xl text-white ${isLocked ? 'opacity-60' : ''}`}
                 placeholder="Carregando da Receita..."
               />
             </div>
@@ -156,7 +163,8 @@ export default function Onboarding() {
                 <Input 
                   value={form.endereco} 
                   onChange={e => setForm({...form, endereco: e.target.value})} 
-                  className="bg-slate-950 border-slate-800 h-14 pl-11 rounded-2xl text-white font-medium text-xs"
+                  readOnly={isLocked}
+                  className={`bg-slate-950 border-slate-800 h-14 pl-11 rounded-2xl text-white font-medium text-xs ${isLocked ? 'opacity-60' : ''}`}
                   placeholder="Rua, Número, Bairro, Cidade"
                 />
               </div>
@@ -175,10 +183,28 @@ export default function Onboarding() {
               </div>
             </div>
 
+            {/* Trava Jurídica - Só aparece após o CNPJ ser validado */}
+            {isLocked && (
+              <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 flex items-start gap-3 animate-in fade-in">
+                <Checkbox 
+                  id="terms" 
+                  checked={acceptedTerms} 
+                  onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  className="mt-1 border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <label htmlFor="terms" className="text-[10px] font-medium text-slate-400 leading-relaxed cursor-pointer">
+                    <span className="text-white font-bold flex items-center gap-1 mb-1"><Scale className="w-3 h-3 text-primary" /> Termo de Responsabilidade Legal</span>
+                    Declaro ser o responsável por este CNPJ. Assumo total responsabilidade civil e criminal pela veracidade dos selos e quilometragens emitidos. A plataforma servirá apenas como registro imutável.
+                  </label>
+                </div>
+              </div>
+            )}
+
             <Button 
               onClick={() => handleFinalize('oficina')} 
               className="w-full h-16 rounded-[1.5rem] font-black text-lg bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all active:scale-95" 
-              disabled={loading || verifyingCnpj}
+              disabled={loading || verifyingCnpj || !isLocked || !acceptedTerms}
             >
               {loading ? (
                 <Loader2 className="animate-spin w-6 h-6" />
@@ -188,7 +214,12 @@ export default function Onboarding() {
             </Button>
             
             <button 
-              onClick={() => setUserType(null)} 
+              onClick={() => {
+                setUserType(null);
+                setIsLocked(false);
+                setAcceptedTerms(false);
+                setForm({ cnpj: '', razaoSocial: '', endereco: '', telefone: '' });
+              }} 
               className="w-full text-center text-[10px] text-slate-600 font-black uppercase tracking-[0.2em] hover:text-slate-400 transition-colors"
             >
               Voltar à escolha
