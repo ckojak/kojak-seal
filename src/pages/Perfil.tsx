@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   User, Mail, LogOut, Car, Wrench, Shield, 
-  Bell, Settings, Building2, MapPin, Phone, Save, Loader2 
+  Bell, Settings, Building2, MapPin, Phone, Save, Loader2, Lock, LocateFixed
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -23,6 +23,10 @@ export default function Perfil() {
   const { data: manutencoes = [] } = useManutencoes();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+
+  // A trava: Se já tem CNPJ e está verificado, bloqueia edição dos dados oficiais
+  const isCnpjLocked = !!(profile?.cnpj && profile?.is_verified);
 
   // Estado para os campos profissionais
   const [formData, setFormData] = useState({
@@ -44,6 +48,50 @@ export default function Perfil() {
     }
   }, [profile]);
 
+  // GPS Sniper - Captura localização atual e converte em endereço
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Seu dispositivo não suporta GPS no navegador.");
+      return;
+    }
+
+    setIsLocating(true);
+    toast.info("Buscando satélite...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          // Reverse Geocoding usando OpenStreetMap (Gratuito e sem chave de API)
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          
+          if (data && data.address) {
+            const rua = data.address.road || data.address.pedestrian || "";
+            const bairro = data.address.suburb || data.address.neighbourhood || "";
+            const cidade = data.address.city || data.address.town || "";
+            const estado = data.address.state || "";
+            
+            const novoEndereco = `${rua}, ${bairro} - ${cidade} - ${estado}`.replace(/^, /, '').trim();
+            setFormData(prev => ({ ...prev, endereco: novoEndereco }));
+            toast.success("Localização capturada com sucesso!");
+          } else {
+            toast.error("Não foi possível converter a localização.");
+          }
+        } catch (error) {
+          toast.error("Falha ao traduzir as coordenadas GPS.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        setIsLocating(false);
+        toast.error("Permissão de localização negada ou falha no GPS.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handleSignOut = async () => {
     await signOut();
     toast.success('Logout realizado com sucesso');
@@ -53,15 +101,21 @@ export default function Perfil() {
   const handleSaveWorkshopData = async () => {
     setLoading(true);
     try {
+      const updatePayload: any = {
+        endereco: formData.endereco,
+        telefone: formData.telefone,
+      };
+
+      // Só envia CNPJ e Razão se NÃO estiver trancado
+      if (!isCnpjLocked) {
+        updatePayload.cnpj = formData.cnpj;
+        updatePayload.razao_social = formData.razaoSocial;
+        updatePayload.display_name = formData.razaoSocial || profile?.display_name;
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          razao_social: formData.razaoSocial,
-          cnpj: formData.cnpj,
-          endereco: formData.endereco,
-          telefone: formData.telefone,
-          display_name: formData.razaoSocial || profile?.display_name,
-        })
+        .update(updatePayload)
         .eq('user_id', user?.id);
 
       if (error) throw error;
@@ -144,29 +198,35 @@ export default function Perfil() {
             </div>
             
             <div className="bg-card border border-border rounded-[2rem] p-6 space-y-4 shadow-sm">
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground ml-1">Razão Social / Nome Fantasia</Label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
-                  <Input 
-                    value={formData.razaoSocial} 
-                    onChange={e => setFormData({...formData, razaoSocial: e.target.value})}
-                    className="pl-10 bg-secondary/50 border-none rounded-xl h-12"
-                    placeholder="Nome da sua Oficina"
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground ml-1">CNPJ</Label>
-                  <Input 
-                    value={formData.cnpj} 
-                    onChange={e => setFormData({...formData, cnpj: e.target.value})}
-                    className="bg-secondary/50 border-none rounded-xl h-12"
-                    placeholder="00.000.000/0001-00"
-                  />
+                  <Label className="text-xs text-muted-foreground ml-1">CNPJ {isCnpjLocked && '(Auditado)'}</Label>
+                  <div className="relative">
+                    <Input 
+                      value={formData.cnpj} 
+                      onChange={e => !isCnpjLocked && setFormData({...formData, cnpj: e.target.value})}
+                      disabled={isCnpjLocked}
+                      className={`bg-secondary/50 border-none rounded-xl h-12 ${isCnpjLocked ? 'opacity-60 pr-10' : ''}`}
+                      placeholder="00.000.000/0001-00"
+                    />
+                    {isCnpjLocked && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />}
+                  </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground ml-1">Razão Social / Nome Fantasia</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                    <Input 
+                      value={formData.razaoSocial} 
+                      onChange={e => !isCnpjLocked && setFormData({...formData, razaoSocial: e.target.value})}
+                      disabled={isCnpjLocked}
+                      className={`pl-10 bg-secondary/50 border-none rounded-xl h-12 ${isCnpjLocked ? 'opacity-60' : ''}`}
+                      placeholder="Nome da sua Oficina"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground ml-1">WhatsApp de Contato</Label>
                   <div className="relative">
@@ -181,22 +241,31 @@ export default function Perfil() {
                 </div>
               </div>
 
+              {/* Endereço com Botão de GPS Sniper */}
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground ml-1">Endereço Completo</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                <div className="relative flex items-center">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 z-10" />
                   <Input 
                     value={formData.endereco} 
                     onChange={e => setFormData({...formData, endereco: e.target.value})}
-                    className="pl-10 bg-secondary/50 border-none rounded-xl h-12"
+                    className="pl-10 pr-12 bg-secondary/50 border-none rounded-xl h-12"
                     placeholder="Rua, Número, Bairro, Cidade - UF"
                   />
+                  <button 
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                    title="Pegar localização atual"
+                    className="absolute right-2 p-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/40 transition-colors z-10"
+                  >
+                    {isLocating ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
               <Button 
                 onClick={handleSaveWorkshopData} 
-                className="w-full h-14 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10" 
+                className="w-full h-14 rounded-2xl font-bold gap-2 shadow-lg shadow-primary/10 mt-6" 
                 disabled={loading}
               >
                 {loading ? <Loader2 className="animate-spin w-4 h-4" /> : <Save className="w-4 h-4" />}
