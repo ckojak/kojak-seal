@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { VitePWA } from "vite-plugin-pwa"; // NOVO: Motor PWA importado
+import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -16,7 +16,6 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(), 
     mode === "development" && componentTagger(),
-    // NOVO: Configuração letal do PWA para domínio no iOS
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
@@ -24,9 +23,11 @@ export default defineConfig(({ mode }) => ({
         name: 'Ficha do Carro',
         short_name: 'FichaCarro',
         description: 'Infraestrutura descentralizada de manutenção automotiva',
-        theme_color: '#000000', // Cor do topo do telemóvel
+        theme_color: '#000000',
         background_color: '#000000',
-        display: 'standalone', // O PULO DO GATO: Abre em tela cheia como app nativo
+        display: 'standalone',
+        start_url: '/', /* O GATILHO QUE FALTAVA */
+        scope: '/', /* TRAVA DE SEGURANÇA DE ROTA */
         icons: [
           {
             src: '/icon-192x192.png',
