@@ -5,15 +5,26 @@ import { toast } from 'sonner';
 
 export interface Manutencao {
   id: string;
+  user_id: string;
   veiculo_id: string;
   km_atual: number;
   descricao: string;
-  foto_url?: string;
-  foto_peca_url?: string; // Nova coluna para a segunda foto
+  foto_url: string | null;
+  foto_peca_url?: string | null;
+  dias_revisao?: number | null;
   data_selada: string;
   oficina: string;
   verificado: boolean;
-  status: 'pendente' | 'aprovado' | 'rejeitado';
+}
+
+interface CreateManutencaoInput {
+  veiculo_id: string;
+  km_atual: number;
+  descricao: string;
+  foto_url?: string | null;
+  foto_peca_url?: string | null;
+  oficina?: string;
+  dias_revisao?: number | null;
 }
 
 export function useManutencoes(veiculoId?: string) {
@@ -36,7 +47,8 @@ export function useManutencoes(veiculoId?: string) {
         toast.error('Erro ao carregar manutenções');
         throw error;
       }
-      return data as Manutencao[];
+
+      return (data ?? []) as Manutencao[];
     },
     enabled: !!user,
   });
@@ -47,36 +59,48 @@ export function useCreateManutencao() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (newManutencao: Partial<Manutencao>) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('profile_type, is_verified_admin, full_name')
-        .eq('id', user?.id)
-        .single();
+    mutationFn: async (newManutencao: CreateManutencaoInput) => {
+      if (!user) throw new Error('Usuário não autenticado');
 
-      // Lógica de Bilionário: Só é verificado se for Oficina E aprovado por você
-      const isOficinaReal = profile?.profile_type === 'oficina' && profile?.is_verified_admin;
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('profile_type, is_verified_admin, display_name, razao_social')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
+
+      const isOficinaReal = profile?.profile_type === 'oficina' && !!profile?.is_verified_admin;
+
+      const payload = {
+        veiculo_id: newManutencao.veiculo_id,
+        km_atual: newManutencao.km_atual,
+        descricao: newManutencao.descricao,
+        foto_url: newManutencao.foto_url ?? null,
+        dias_revisao: newManutencao.dias_revisao ?? null,
+        oficina: newManutencao.oficina ?? profile?.razao_social ?? profile?.display_name ?? 'Usuário',
+        verificado: isOficinaReal,
+        user_id: user.id,
+      };
 
       const { data, error } = await supabase
         .from('manutencoes')
-        .insert([{
-          ...newManutencao,
-          oficina: profile?.full_name || 'Usuário',
-          verificado: isOficinaReal, // Trava de segurança
-          status: isOficinaReal ? 'aprovado' : 'pendente'
-        }])
+        .insert(payload)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Manutencao;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manutencoes'] });
       toast.success('Manutenção registrada com sucesso!');
     },
-    onError: (error: any) => {
-      toast.error('Erro ao salvar: ' + error.message);
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao salvar: ' + message);
     }
   });
 }
@@ -89,13 +113,13 @@ export function useUploadFoto() {
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('manutencao_fotos')
+        .from('manutencoes-fotos')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
-        .from('manutencao_fotos')
+        .from('manutencoes-fotos')
         .getPublicUrl(filePath);
 
       return data.publicUrl;
