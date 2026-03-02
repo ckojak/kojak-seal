@@ -10,6 +10,7 @@ export interface Veiculo {
   modelo: string | null;
   ano: number | null;
   cor: string | null;
+  oficina_email: string | null;
   created_at: string;
   updated_at: string;
 }
