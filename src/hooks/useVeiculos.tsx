@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { toast } from 'sonner';
 
 export interface Veiculo {
   id: string;
@@ -11,6 +12,7 @@ export interface Veiculo {
   ano: number | null;
   cor: string | null;
   oficina_email: string | null;
+  proprietario_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,7 +42,7 @@ export function useVeiculos(options?: { isOficina?: boolean }) {
             .eq('user_id', user.id),
         ]);
 
-        if (ownedRes.error) throw ownedRes.error;
+        if (ownedRes.error) { toast.error('Erro ao carregar veículos'); throw ownedRes.error; }
 
         const servicedVehicleIds = new Set(
           (servicedRes.data ?? []).map((m) => m.veiculo_id)
@@ -89,7 +91,7 @@ export function useVeiculos(options?: { isOficina?: boolean }) {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) { toast.error('Erro ao carregar veículos'); throw error; }
       return data as Veiculo[];
     },
     enabled: !!user,
