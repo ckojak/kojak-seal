@@ -6,12 +6,11 @@ import { AppLayout } from '@/components/AppLayout';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Shield, ShieldCheck, Users, Loader2, Calendar, Ban, Clock } from 'lucide-react';
+import { ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, addDays, addYears } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, addDays } from 'date-fns';
 
 const ADMIN_EMAIL = 'bmw.reta@hotmail.com';
 
@@ -26,11 +25,20 @@ export default function AdminPanel() {
   useEffect(() => { if (isAdmin) fetchProfiles(); }, [isAdmin]);
 
   const fetchProfiles = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       setProfiles(data || []);
-    } catch (error) { toast.error('Erro ao carregar perfis'); } finally { setLoading(false); }
+    } catch (error) {
+      console.error('Erro ao carregar perfis:', error);
+      toast.error('Erro ao carregar perfis');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleVerification = async (profileId: string, currentStatus: boolean) => {
@@ -67,37 +75,48 @@ export default function AdminPanel() {
         <div className="flex items-center gap-3 mb-8">
           <ShieldCheck className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold">Painel CEO</h1>
+          <Badge variant="outline" className="ml-auto">{profiles.length} perfis</Badge>
         </div>
 
-        <Card className="bg-card border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome/Oficina</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expira em</TableHead>
-                <TableHead>Verificado</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.razao_social || p.display_name}</TableCell>
-                  <TableCell><Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>{p.subscription_status}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{p.subscription_expires_at ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy') : '-'}</TableCell>
-                  <TableCell>
-                    <Switch checked={p.is_verified} onCheckedChange={() => toggleVerification(p.id, p.is_verified)} disabled={updating === p.id} />
-                  </TableCell>
-                  <TableCell className="text-right flex justify-end gap-2">
-                    <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 30)}>+30d</Button>
-                    <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 365)}>+1a</Button>
-                  </TableCell>
+        {loading ? (
+          <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
+        ) : profiles.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">Nenhum perfil encontrado.</div>
+        ) : (
+          <Card className="bg-card border-border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome/Oficina</TableHead>
+                  <TableHead>Email / User ID</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Expira em</TableHead>
+                  <TableHead>Verificado</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {profiles.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.razao_social || p.display_name || 'Sem nome'}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">{p.user_id}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-[10px]">{p.user_type || 'N/A'}</Badge></TableCell>
+                    <TableCell><Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>{p.subscription_status || 'free'}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.subscription_expires_at ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy') : '-'}</TableCell>
+                    <TableCell>
+                      <Switch checked={!!p.is_verified} onCheckedChange={() => toggleVerification(p.id, !!p.is_verified)} disabled={updating === p.id} />
+                    </TableCell>
+                    <TableCell className="text-right flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 30)} disabled={updating === p.id}>+30d</Button>
+                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 365)} disabled={updating === p.id}>+1a</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );
