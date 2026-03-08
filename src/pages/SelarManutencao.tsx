@@ -67,16 +67,21 @@ export default function SelarManutencao() {
     try {
       // Upload das evidências (Serviço + Peça/Nota)
       const urlServico = await uploadFoto.mutateAsync(fotoServico);
-      const urlPeca = await uploadFoto.mutateAsync(fotoPeca);
+      // Upload segunda foto mas armazena na descrição (coluna foto_peca_url não existe no schema)
+      let urlPeca = '';
+      try { urlPeca = await uploadFoto.mutateAsync(fotoPeca); } catch (_) {}
+
+      const descFull = urlPeca 
+        ? `${descricao}\n\n[Foto da Peça/NF]: ${urlPeca}` 
+        : descricao;
 
       await createManutencao.mutateAsync({
         veiculo_id: veiculo.id,
         km_atual: parseInt(kmAtual),
-        descricao,
+        descricao: descFull,
         foto_url: urlServico,
-        foto_peca_url: urlPeca,
         oficina: profile?.razao_social || 'Oficina Verificada',
-        dias_revisao: parseInt(diasRevisao, 10) // NOVO: Envia os dias para o banco
+        dias_revisao: parseInt(diasRevisao, 10)
       });
 
       toast.success("MANUTENÇÃO SELADA COM SUCESSO!");

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShieldCheck, Loader2 } from 'lucide-react';
+import { ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
 
@@ -17,6 +17,7 @@ const ADMIN_EMAIL = 'bmw.reta@hotmail.com';
 
 export default function AdminPanel() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -105,6 +106,9 @@ export default function AdminPanel() {
     <AppLayout showNav={false}>
       <div className="p-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <ShieldCheck className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold">Painel CEO</h1>
           <Badge variant="outline" className="ml-auto">{profiles.length} perfis</Badge>
@@ -120,7 +124,7 @@ export default function AdminPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome/Oficina</TableHead>
-                  <TableHead>Email / User ID</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expira em</TableHead>
@@ -132,7 +136,9 @@ export default function AdminPanel() {
                 {profiles.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.razao_social || p.display_name || 'Sem nome'}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">{p.user_id}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[220px] truncate">
+                      {p.email || p.display_name || p.user_id?.substring(0, 8) + '...'}
+                    </TableCell>
                     <TableCell>
                       <Select
                         value={p.role || 'user'}
