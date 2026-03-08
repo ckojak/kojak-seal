@@ -17,7 +17,7 @@ export interface Veiculo {
   updated_at: string;
 }
 
-// Lovable Cloud connected - secrets updated to uzfkgeeryxlsreocfvry
+// Using Lovable Cloud (uzfkgeeryxlsreocfvry) - old secrets removed
 
 export function useVeiculos(options?: { isOficina?: boolean }) {
   const { user } = useAuth();
