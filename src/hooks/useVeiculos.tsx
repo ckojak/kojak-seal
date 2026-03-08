@@ -17,7 +17,7 @@ export interface Veiculo {
   updated_at: string;
 }
 
-// Force rebuild to pick up updated Supabase secrets
+// Lovable Cloud connected - secrets updated to uzfkgeeryxlsreocfvry
 
 export function useVeiculos(options?: { isOficina?: boolean }) {
   const { user } = useAuth();
