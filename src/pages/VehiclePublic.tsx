@@ -161,8 +161,8 @@ export default function VehiclePublic() {
                       <span className="text-[9px] text-slate-500 uppercase font-black tracking-tighter flex items-center gap-1">
                         <FileText className="w-3 h-3" /> Peça / Comprovante
                       </span>
-                      {m.foto_peca_url ? (
-                        <img src={m.foto_peca_url} alt="Peça" className="w-full h-32 object-cover rounded-2xl border border-slate-800 hover:scale-[1.02] transition-transform cursor-pointer" />
+                      {(m as any).foto_peca_url ? (
+                        <img src={(m as any).foto_peca_url} alt="Peça" className="w-full h-32 object-cover rounded-2xl border border-slate-800 hover:scale-[1.02] transition-transform cursor-pointer" />
                       ) : (
                         <div className="h-32 bg-slate-800/30 rounded-2xl flex items-center justify-center border border-dashed border-slate-700 text-center px-4">
                           <span className="text-[9px] text-slate-600 font-bold uppercase tracking-tighter">Aguardando comprovação</span>

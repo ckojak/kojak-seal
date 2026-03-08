@@ -10,8 +10,7 @@ export interface Manutencao {
   km_atual: number;
   descricao: string;
   foto_url: string | null;
-  foto_peca_url?: string | null;
-  dias_revisao?: number | null;
+  dias_revisao: number | null;
   data_selada: string;
   oficina: string;
   verificado: boolean;
