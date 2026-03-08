@@ -26,7 +26,7 @@ export default function Certificado() {
       const { data: car, error: carError } = await supabase
         .from('veiculos')
         .select('*')
-        .eq('placa', placa)
+        .ilike('placa', placa)
         .maybeSingle();
 
       if (carError || !car) {
