@@ -1,4 +1,4 @@
-// Server restart: env vars refresh v2
+// Server restart: env vars refresh v3 — force full reload
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
