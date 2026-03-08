@@ -120,6 +120,11 @@ export function useCreateVeiculo() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['veiculos'] });
+      toast.success('Veículo adicionado com sucesso!');
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error('Erro ao adicionar veículo: ' + message);
     },
   });
 }
