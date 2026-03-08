@@ -17,6 +17,8 @@ export interface Veiculo {
   updated_at: string;
 }
 
+// Force rebuild to pick up updated Supabase secrets
+
 export function useVeiculos(options?: { isOficina?: boolean }) {
   const { user } = useAuth();
   const isOficina = options?.isOficina ?? false;
