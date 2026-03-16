@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Share2, Copy, Check, ShieldCheck, Fingerprint, ExternalLink } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users, UserPlus, Trash2, Crown, Edit3, Eye, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { useVehicleUsers, useRemoveVehicleUser, VehiclePermission } from '@/hooks/useVehicleUsers';
 import { Veiculo } from '@/hooks/useVeiculos';
 
 interface ShareVehicleModalProps {
@@ -13,103 +15,182 @@ interface ShareVehicleModalProps {
   veiculo: Veiculo;
 }
 
+const PERMISSION_LABELS: Record<VehiclePermission, { label: string; icon: React.ReactNode; description: string }> = {
+  owner: {
+    label: 'Proprietário',
+    icon: <Crown className="w-4 h-4 text-yellow-500" />,
+    description: 'Acesso total, pode convidar outros',
+  },
+  editor: {
+    label: 'Editor',
+    icon: <Edit3 className="w-4 h-4 text-primary" />,
+    description: 'Pode registrar manutenções',
+  },
+  viewer: {
+    label: 'Visualizador',
+    icon: <Eye className="w-4 h-4 text-muted-foreground" />,
+    description: 'Apenas visualização',
+  },
+};
+
 export function ShareVehicleModal({ isOpen, onClose, veiculo }: ShareVehicleModalProps) {
+  const [email, setEmail] = useState('');
+  const [permission, setPermission] = useState<VehiclePermission>('viewer');
   const [copied, setCopied] = useState(false);
   
+  const { data: vehicleUsers = [], isLoading } = useVehicleUsers(veiculo.id);
+  const removeUser = useRemoveVehicleUser();
+
   const publicUrl = `${window.location.origin}/v/${veiculo.id}`;
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
-      toast.success('Link de integridade copiado!');
+      toast.success('Link copiado!');
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('Erro ao copiar link');
     }
   };
 
-  const handleOpenLink = () => {
-    window.open(publicUrl, '_blank');
+  const handleInvite = () => {
+    // Por enquanto, mostrar mensagem informativa
+    // Em uma implementação completa, enviaria um email de convite
+    toast.info('Funcionalidade de convite por email em desenvolvimento. Use o link público para compartilhar o histórico.');
+    setEmail('');
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    try {
+      await removeUser.mutateAsync({ id: userId, vehicleId: veiculo.id });
+      toast.success('Usuário removido');
+    } catch {
+      toast.error('Erro ao remover usuário');
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0F172A] border-slate-800 max-w-md rounded-[2.5rem] p-8 shadow-2xl">
+      <DialogContent className="bg-card border-border max-w-md">
         <DialogHeader>
-          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
-            <Share2 className="w-7 h-7 text-primary" />
-          </div>
-          <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight">
-            Partilha Oficial
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Users className="w-5 h-5 text-primary" />
+            Compartilhar Veículo
           </DialogTitle>
-          <DialogDescription className="text-slate-400 font-medium">
-            Gere o link de autenticidade para o veículo <span className="text-primary font-bold">{veiculo.placa}</span>
+          <DialogDescription className="text-muted-foreground">
+            Compartilhe o histórico de {veiculo.placa} com outras pessoas
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-8 mt-4">
-          {/* Seção do Link Público Blindado */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                URL de Verificação
-              </Label>
-              <div className="flex items-center gap-1.5 text-[10px] font-mono text-green-500 bg-green-500/5 px-2 py-1 rounded-md border border-green-500/10">
-                <ShieldCheck className="w-3 h-3" /> ATIVO
-              </div>
-            </div>
-            
-            <div className="relative group">
+        <div className="space-y-6">
+          {/* Link público */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-foreground">Link público</Label>
+            <div className="flex gap-2">
               <Input
                 value={publicUrl}
                 readOnly
-                className="bg-slate-900/50 border-slate-800 text-slate-300 text-sm h-14 pr-24 rounded-2xl focus-visible:ring-primary/30"
+                className="bg-secondary/50 text-sm"
               />
-              <div className="absolute right-2 top-2 flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleOpenLink}
-                  className="h-10 w-10 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
-                  title="Abrir link"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
-                <Button
-                  onClick={handleCopyLink}
-                  className={`h-10 px-4 rounded-xl font-bold transition-all ${
-                    copied ? 'bg-green-600 hover:bg-green-600' : 'bg-primary hover:bg-primary/90'
-                  }`}
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleCopyLink}
+                className="shrink-0"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 text-primary" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Qualquer pessoa com este link pode visualizar o histórico
+            </p>
+          </div>
+
+          {/* Convidar por email */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-foreground">Convidar usuário</Label>
+            
+            <div className="flex gap-2">
+              <Input
+                type="email"
+                placeholder="email@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-secondary/50"
+              />
+              <Select value={permission} onValueChange={(v) => setPermission(v as VehiclePermission)}>
+                <SelectTrigger className="w-32 bg-secondary/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="editor">
+                    <div className="flex items-center gap-2">
+                      {PERMISSION_LABELS.editor.icon}
+                      <span>Editor</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="viewer">
+                    <div className="flex items-center gap-2">
+                      {PERMISSION_LABELS.viewer.icon}
+                      <span>Visualizador</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={handleInvite}
+              disabled={!email}
+            >
+              <UserPlus className="w-4 h-4" />
+              Convidar
+            </Button>
+          </div>
+
+          {/* Lista de usuários */}
+          {vehicleUsers.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-foreground">
+                Usuários com acesso
+              </Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {vehicleUsers.map((vu) => (
+                  <div
+                    key={vu.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border"
+                  >
+                    <div className="flex items-center gap-3">
+                      {PERMISSION_LABELS[vu.permission].icon}
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {vu.user_id.slice(0, 8)}...
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {PERMISSION_LABELS[vu.permission].label}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => handleRemoveUser(vu.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-
-          {/* Info de Segurança (Blockchain-Style) */}
-          <div className="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl space-y-3">
-            <div className="flex items-center gap-3">
-              <Fingerprint className="w-5 h-5 text-primary/60" />
-              <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
-                Este link dá acesso à <span className="text-white font-bold">Ficha Pública de Integridade</span>. 
-                Qualquer pessoa com o link poderá auditar o histórico de manutenções seladas.
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            className="w-full border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white h-12 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all"
-            onClick={onClose}
-          >
-            Fechar Painel
-          </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

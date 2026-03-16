@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, Stamp, Loader2, Search, ShieldCheck, Car, AlertCircle, Clock } from 'lucide-react';
+import { Camera, Stamp, Loader2, Search, ShieldCheck, Car, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SelarManutencao() {
@@ -23,7 +23,6 @@ export default function SelarManutencao() {
   const [veiculo, setVeiculo] = useState<any>(null);
   const [kmAtual, setKmAtual] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [diasRevisao, setDiasRevisao] = useState('0'); // NOVO: Controlador de Garantia/Revisão
   const [fotoServico, setFotoServico] = useState<File | null>(null);
   const [fotoPeca, setFotoPeca] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,21 +66,15 @@ export default function SelarManutencao() {
     try {
       // Upload das evidências (Serviço + Peça/Nota)
       const urlServico = await uploadFoto.mutateAsync(fotoServico);
-      // Upload segunda foto mas armazena na descrição (coluna foto_peca_url não existe no schema)
-      let urlPeca = '';
-      try { urlPeca = await uploadFoto.mutateAsync(fotoPeca); } catch (_) {}
-
-      const descFull = urlPeca 
-        ? `${descricao}\n\n[Foto da Peça/NF]: ${urlPeca}` 
-        : descricao;
+      const urlPeca = await uploadFoto.mutateAsync(fotoPeca);
 
       await createManutencao.mutateAsync({
         veiculo_id: veiculo.id,
         km_atual: parseInt(kmAtual),
-        descricao: descFull,
+        descricao,
         foto_url: urlServico,
-        oficina: profile?.razao_social || 'Oficina Verificada',
-        dias_revisao: parseInt(diasRevisao, 10)
+        foto_peca_url: urlPeca,
+        oficina: profile?.razao_social || 'Oficina Verificada'
       });
 
       toast.success("MANUTENÇÃO SELADA COM SUCESSO!");
@@ -172,26 +165,6 @@ export default function SelarManutencao() {
                 placeholder="O que foi feito no veículo?"
                 required 
               />
-            </div>
-
-            {/* NOVO: Bloco de Agendamento de Revisão */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                Agendar Revisão / Garantia
-              </Label>
-              <select
-                value={diasRevisao}
-                onChange={e => setDiasRevisao(e.target.value)}
-                className="h-12 w-full bg-secondary text-foreground rounded-xl border-none px-4 outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
-              >
-                <option value="0">Sem retorno obrigatório</option>
-                <option value="30">Retorno em 30 dias (Garantia Curta)</option>
-                <option value="60">Retorno em 60 dias (Revisão Padrão)</option>
-                <option value="90">Retorno em 90 dias (Garantia Longa)</option>
-                <option value="180">Retorno em 6 meses (Revisão Preventiva)</option>
-                <option value="365">Retorno em 1 ano (Revisão Anual)</option>
-              </select>
             </div>
 
             {/* Upload de Provas Digitais */}

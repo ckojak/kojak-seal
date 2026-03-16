@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { toast } from 'sonner';
 
 export interface Veiculo {
   id: string;
@@ -11,13 +10,9 @@ export interface Veiculo {
   modelo: string | null;
   ano: number | null;
   cor: string | null;
-  oficina_email: string | null;
-  proprietario_id: string | null;
   created_at: string;
   updated_at: string;
 }
-
-// Using Lovable Cloud (uzfkgeeryxlsreocfvry) - old secrets removed
 
 export function useVeiculos(options?: { isOficina?: boolean }) {
   const { user } = useAuth();
@@ -44,7 +39,7 @@ export function useVeiculos(options?: { isOficina?: boolean }) {
             .eq('user_id', user.id),
         ]);
 
-        if (ownedRes.error) { toast.error('Erro ao carregar veículos'); throw ownedRes.error; }
+        if (ownedRes.error) throw ownedRes.error;
 
         const servicedVehicleIds = new Set(
           (servicedRes.data ?? []).map((m) => m.veiculo_id)
@@ -93,7 +88,7 @@ export function useVeiculos(options?: { isOficina?: boolean }) {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) { toast.error('Erro ao carregar veículos'); throw error; }
+      if (error) throw error;
       return data as Veiculo[];
     },
     enabled: !!user,
@@ -122,11 +117,6 @@ export function useCreateVeiculo() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['veiculos'] });
-      toast.success('Veículo adicionado com sucesso!');
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Erro desconhecido';
-      toast.error('Erro ao adicionar veículo: ' + message);
     },
   });
 }

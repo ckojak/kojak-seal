@@ -26,7 +26,7 @@ export default function Certificado() {
       const { data: car, error: carError } = await supabase
         .from('veiculos')
         .select('*')
-        .ilike('placa', placa)
+        .eq('placa', placa)
         .maybeSingle();
 
       if (carError || !car) {
@@ -56,18 +56,20 @@ export default function Certificado() {
   return (
     <AppLayout>
       <div className="px-4 pt-6 pb-24 max-w-lg mx-auto">
-        {/* BUSCA GLOBAL - Disponível para todos */}
-        <form onSubmit={handleSearch} className="mb-8 flex gap-2">
-          <Input 
-            placeholder="PESQUISAR PLACA..." 
-            value={searchPlate}
-            onChange={(e) => setSearchPlate(e.target.value)}
-            className="h-14 bg-card border-border rounded-2xl font-mono text-lg font-bold"
-          />
-          <Button type="submit" className="h-14 w-14 rounded-2xl" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" /> : <Search />}
-          </Button>
-        </form>
+        {/* BUSCA GLOBAL (SÓ PROS ELITES) */}
+        {(isOficina || isCEO) && (
+          <form onSubmit={handleSearch} className="mb-8 flex gap-2">
+            <Input 
+              placeholder="PESQUISAR PLACA..." 
+              value={searchPlate}
+              onChange={(e) => setSearchPlate(e.target.value)}
+              className="h-14 bg-card border-border rounded-2xl font-mono text-lg font-bold"
+            />
+            <Button type="submit" className="h-14 w-14 rounded-2xl" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin" /> : <Search />}
+            </Button>
+          </form>
+        )}
 
         {veiculo ? (
           <div className="space-y-6">

@@ -18,7 +18,6 @@ export type Database = {
         Row: {
           data_selada: string
           descricao: string
-          dias_revisao: number | null
           foto_url: string | null
           id: string
           km_atual: number
@@ -30,7 +29,6 @@ export type Database = {
         Insert: {
           data_selada?: string
           descricao: string
-          dias_revisao?: number | null
           foto_url?: string | null
           id?: string
           km_atual: number
@@ -42,7 +40,6 @@ export type Database = {
         Update: {
           data_selada?: string
           descricao?: string
-          dias_revisao?: number | null
           foto_url?: string | null
           id?: string
           km_atual?: number
@@ -69,11 +66,8 @@ export type Database = {
           endereco: string | null
           id: string
           is_verified: boolean
-          is_verified_admin: boolean | null
           onboarding_completed: boolean | null
-          profile_type: string | null
           razao_social: string | null
-          role: string | null
           subscription_expires_at: string | null
           subscription_status: string
           telefone: string | null
@@ -88,11 +82,8 @@ export type Database = {
           endereco?: string | null
           id?: string
           is_verified?: boolean
-          is_verified_admin?: boolean | null
           onboarding_completed?: boolean | null
-          profile_type?: string | null
           razao_social?: string | null
-          role?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
           telefone?: string | null
@@ -107,11 +98,8 @@ export type Database = {
           endereco?: string | null
           id?: string
           is_verified?: boolean
-          is_verified_admin?: boolean | null
           onboarding_completed?: boolean | null
-          profile_type?: string | null
           razao_social?: string | null
-          role?: string | null
           subscription_expires_at?: string | null
           subscription_status?: string
           telefone?: string | null
@@ -164,9 +152,7 @@ export type Database = {
           id: string
           marca: string | null
           modelo: string | null
-          oficina_email: string | null
           placa: string
-          proprietario_id: string | null
           updated_at: string
           user_id: string
         }
@@ -177,9 +163,7 @@ export type Database = {
           id?: string
           marca?: string | null
           modelo?: string | null
-          oficina_email?: string | null
           placa: string
-          proprietario_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -190,21 +174,11 @@ export type Database = {
           id?: string
           marca?: string | null
           modelo?: string | null
-          oficina_email?: string | null
           placa?: string
-          proprietario_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "veiculos_proprietario_id_fkey"
-            columns: ["proprietario_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

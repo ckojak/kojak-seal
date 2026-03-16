@@ -37,8 +37,7 @@ export default function Dashboard() {
         modelo: data.modelo || null,
         ano: data.ano ? parseInt(data.ano) : null,
         cor: data.cor || null,
-        oficina_email: data.oficinaEmail || null,
-        proprietario_id: null,
+        oficina_email: data.oficinaEmail || null, 
       });
       setShowAddVeiculo(false);
     } catch (error: any) {
