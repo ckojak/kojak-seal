@@ -12,8 +12,7 @@ interface MaintenanceTimelineProps {
 }
 
 export function MaintenanceTimeline({ manutencoes, profiles = [] }: MaintenanceTimelineProps) {
-  // Buscar profiles se não foram passados
-  const userIds = [...new Set(manutencoes.map(m => m.user_id))];
+  const userIds = [...new Set(manutencoes.map(m => m.user_id).filter(Boolean))];
   const { data: fetchedProfiles } = useProfiles(profiles.length === 0 ? userIds : []);
   
   const allProfiles = profiles.length > 0 ? profiles : (fetchedProfiles || []);
@@ -38,32 +37,24 @@ export function MaintenanceTimeline({ manutencoes, profiles = [] }: MaintenanceT
 
   return (
     <div className="relative">
-      {/* Timeline line */}
       <div className="absolute left-6 top-0 bottom-0 w-px bg-border" />
       
       <div className="space-y-4">
         {manutencoes.map((manutencao, index) => (
           <div 
             key={manutencao.id} 
-            className={cn(
-              "relative pl-14 animate-slide-up",
-            )}
+            className={cn("relative pl-14 animate-slide-up")}
             style={{ animationDelay: `${index * 100}ms` }}
           >
-            {/* Timeline node */}
             <div className="absolute left-4 top-4 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-neon">
               <CheckCircle2 className="w-3 h-3 text-primary-foreground" />
             </div>
             
-            {/* Card */}
             <div className="bg-card border border-border rounded-xl p-4 hover:border-primary/30 transition-colors">
-              {/* Header */}
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium text-primary uppercase tracking-wider">
-                      Selado
-                    </span>
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider">Selado</span>
                     {manutencao.verificado && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                         <CheckCircle2 className="w-3 h-3" />
@@ -81,42 +72,27 @@ export function MaintenanceTimeline({ manutencoes, profiles = [] }: MaintenanceT
                 </div>
               </div>
               
-              {/* Content */}
               <div className="space-y-2">
                 {(() => {
-                  const profile = getProfile(manutencao.user_id);
+                  const profile = manutencao.user_id ? getProfile(manutencao.user_id) : null;
                   const isVerified = profile?.is_verified ?? false;
-                  const displayName = profile?.display_name || manutencao.oficina;
                   
                   return (
                     <div className="flex items-center gap-2 text-sm">
-                      <Wrench className={cn(
-                        "w-4 h-4",
-                        isVerified ? "text-primary" : "text-muted-foreground"
-                      )} />
-                      <span className={cn(
-                        "font-medium",
-                        isVerified ? "text-primary" : "text-foreground"
-                      )}>
+                      <Wrench className={cn("w-4 h-4", isVerified ? "text-primary" : "text-muted-foreground")} />
+                      <span className={cn("font-medium", isVerified ? "text-primary" : "text-foreground")}>
                         {manutencao.oficina}
                       </span>
                       {isVerified && <VerifiedBadge size="sm" />}
                     </div>
                   );
                 })()}
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {manutencao.descricao}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{manutencao.descricao}</p>
               </div>
               
-              {/* Photo */}
               {manutencao.foto_url && (
                 <div className="mt-3 relative rounded-lg overflow-hidden bg-secondary/30">
-                  <img 
-                    src={manutencao.foto_url} 
-                    alt="Comprovante da manutenção"
-                    className="w-full h-32 object-cover"
-                  />
+                  <img src={manutencao.foto_url} alt="Comprovante da manutenção" className="w-full h-32 object-cover" />
                   <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md glass-dark text-xs text-foreground">
                     <Camera className="w-3 h-3" />
                     Comprovante

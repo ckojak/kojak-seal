@@ -68,12 +68,12 @@ export default function SelarManutencao() {
       const urlServico = await uploadFoto.mutateAsync(fotoServico);
       const urlPeca = await uploadFoto.mutateAsync(fotoPeca);
 
+      const descFinal = urlPeca ? `${descricao}\n\n📎 Foto da peça: ${urlPeca}` : descricao;
       await createManutencao.mutateAsync({
         veiculo_id: veiculo.id,
         km_atual: parseInt(kmAtual),
-        descricao,
+        descricao: descFinal,
         foto_url: urlServico,
-        foto_peca_url: urlPeca,
         oficina: profile?.razao_social || 'Oficina Verificada'
       });
 

@@ -6,14 +6,13 @@ import { toast } from 'sonner';
 export interface Manutencao {
   id: string;
   veiculo_id: string;
+  user_id: string;
   km_atual: number;
   descricao: string;
-  foto_url?: string;
-  foto_peca_url?: string; // Nova coluna para a segunda foto
+  foto_url?: string | null;
   data_selada: string;
   oficina: string;
   verificado: boolean;
-  status: 'pendente' | 'aprovado' | 'rejeitado';
 }
 
 export function useManutencoes(veiculoId?: string) {
@@ -32,11 +31,8 @@ export function useManutencoes(veiculoId?: string) {
       }
 
       const { data, error } = await query;
-      if (error) {
-        toast.error('Erro ao carregar manutenções');
-        throw error;
-      }
-      return data as Manutencao[];
+      if (error) throw error;
+      return (data ?? []) as Manutencao[];
     },
     enabled: !!user,
   });
@@ -48,22 +44,26 @@ export function useCreateManutencao() {
 
   return useMutation({
     mutationFn: async (newManutencao: Partial<Manutencao>) => {
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data: profile } = await supabase
         .from('profiles')
-        .select('profile_type, is_verified_admin, full_name')
-        .eq('id', user?.id)
+        .select('user_type, is_verified, display_name')
+        .eq('user_id', user.id)
         .single();
 
-      // Lógica de Bilionário: Só é verificado se for Oficina E aprovado por você
-      const isOficinaReal = profile?.profile_type === 'oficina' && profile?.is_verified_admin;
+      const isOficinaReal = profile?.user_type === 'oficina' && profile?.is_verified === true;
 
       const { data, error } = await supabase
         .from('manutencoes')
         .insert([{
-          ...newManutencao,
-          oficina: profile?.full_name || 'Usuário',
-          verificado: isOficinaReal, // Trava de segurança
-          status: isOficinaReal ? 'aprovado' : 'pendente'
+          veiculo_id: newManutencao.veiculo_id!,
+          km_atual: newManutencao.km_atual!,
+          descricao: newManutencao.descricao!,
+          foto_url: newManutencao.foto_url || null,
+          user_id: user.id,
+          oficina: profile?.display_name || 'Usuário',
+          verificado: isOficinaReal,
         }])
         .select()
         .single();
@@ -86,17 +86,16 @@ export function useUploadFoto() {
     mutationFn: async (file: File) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('manutencao_fotos')
-        .upload(filePath, file);
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
         .from('manutencao_fotos')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       return data.publicUrl;
     },
