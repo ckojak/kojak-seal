@@ -1,22 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Shield, ShieldCheck, Users, Loader2, Calendar, Ban, Clock } from 'lucide-react';
+import { ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, addDays, addYears } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, addDays } from 'date-fns';
 
 const ADMIN_EMAIL = 'bmw.reta@hotmail.com';
 
 export default function AdminPanel() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
@@ -64,40 +63,52 @@ export default function AdminPanel() {
   return (
     <AppLayout showNav={false}>
       <div className="p-4 max-w-7xl mx-auto">
+        {/* Header com botão voltar */}
         <div className="flex items-center gap-3 mb-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
           <ShieldCheck className="w-8 h-8 text-primary" />
           <h1 className="text-2xl font-bold">Painel CEO</h1>
         </div>
 
-        <Card className="bg-card border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome/Oficina</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Expira em</TableHead>
-                <TableHead>Verificado</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profiles.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.razao_social || p.display_name}</TableCell>
-                  <TableCell><Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>{p.subscription_status}</Badge></TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{p.subscription_expires_at ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy') : '-'}</TableCell>
-                  <TableCell>
-                    <Switch checked={p.is_verified} onCheckedChange={() => toggleVerification(p.id, p.is_verified)} disabled={updating === p.id} />
-                  </TableCell>
-                  <TableCell className="text-right flex justify-end gap-2">
-                    <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 30)}>+30d</Button>
-                    <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 365)}>+1a</Button>
-                  </TableCell>
+        {loading ? (
+          <div className="flex justify-center py-12"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
+        ) : (
+          <div className="bg-card border border-border rounded-xl overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome/Oficina</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Expira em</TableHead>
+                  <TableHead>Verificado</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {profiles.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.razao_social || p.display_name || '—'}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.id}</TableCell>
+                    <TableCell><Badge variant="outline">{p.user_type || 'cliente'}</Badge></TableCell>
+                    <TableCell><Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>{p.subscription_status}</Badge></TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.subscription_expires_at ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy') : '—'}</TableCell>
+                    <TableCell>
+                      <Switch checked={p.is_verified} onCheckedChange={() => toggleVerification(p.id, p.is_verified)} disabled={updating === p.id} />
+                    </TableCell>
+                    <TableCell className="text-right flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 30)}>+30d</Button>
+                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 365)}>+1a</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </AppLayout>
   );

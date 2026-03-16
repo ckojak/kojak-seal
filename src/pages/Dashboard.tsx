@@ -6,14 +6,15 @@ import { useManutencoes, Manutencao } from '@/hooks/useManutencoes';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Stamp, History, ChevronRight, LayoutDashboard, Car, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AddVehicleForm, VehicleFormData } from '@/components/AddVehicleForm';
+import { toast } from 'sonner';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { isOficina, profile } = useCurrentProfile();
+  const { isOficina, isVerified, profile } = useCurrentProfile();
   const { data: veiculos = [], isLoading: loadingVeiculos } = useVeiculos({ isOficina });
   const { data: manutencoes = [], isLoading: loadingManutencoes } = useManutencoes();
   const createVeiculo = useCreateVeiculo();
@@ -37,11 +38,12 @@ export default function Dashboard() {
         modelo: data.modelo || null,
         ano: data.ano ? parseInt(data.ano) : null,
         cor: data.cor || null,
-        oficina_email: data.oficinaEmail || null, 
       });
       setShowAddVeiculo(false);
+      toast.success('Veículo adicionado com sucesso!');
     } catch (error: any) {
-      // Erro tratado pelo hook/toast
+      console.error('Erro ao salvar veículo:', error);
+      toast.error('Erro ao salvar veículo: ' + (error?.message || 'Tente novamente'));
     }
   };
 
@@ -61,7 +63,7 @@ export default function Dashboard() {
               Painel {isOficina ? 'Oficina' : 'Cliente'}
             </h1>
           </div>
-          {profile?.is_verified_admin && (
+          {isVerified && (
             <div className="flex items-center gap-1 bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">
               <ShieldCheck className="w-3 h-3" />
               <span className="text-[10px] font-bold uppercase">Verificado</span>
@@ -93,7 +95,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Ações Rápidas - Decisão de Interface por Perfil */}
+              {/* Ações Rápidas */}
               <div className="grid grid-cols-1 gap-3">
                 {isOficina && (
                   <Button 
@@ -160,6 +162,16 @@ export default function Dashboard() {
               Adicionar Veículo
             </Button>
           </div>
+        )}
+
+        {/* Botão flutuante + para adicionar veículo */}
+        {veiculos.length > 0 && (
+          <button
+            onClick={() => setShowAddVeiculo(true)}
+            className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
         )}
 
         {/* Modal de Cadastro de Veículo */}

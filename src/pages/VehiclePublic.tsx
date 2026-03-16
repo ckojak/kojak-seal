@@ -33,7 +33,7 @@ export default function VehiclePublic() {
         .eq('veiculo_id', id)
         .order('data_selada', { ascending: false });
       if (error) throw error;
-      return data as Manutencao[];
+      return (data ?? []) as unknown as Manutencao[];
     },
     enabled: !!id,
   });
