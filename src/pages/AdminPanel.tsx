@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShieldCheck, Loader2, ArrowLeft } from 'lucide-react';
+import { ShieldCheck, Loader2, ArrowLeft, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
 
@@ -26,10 +26,17 @@ export default function AdminPanel() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       setProfiles(data || []);
-    } catch (error) { toast.error('Erro ao carregar perfis'); } finally { setLoading(false); }
+    } catch (error) {
+      toast.error('Erro ao carregar perfis');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleVerification = async (profileId: string, currentStatus: boolean) => {
@@ -38,52 +45,86 @@ export default function AdminPanel() {
       const nextStatus = !currentStatus;
       const { error } = await supabase
         .from('profiles')
-        .update({ is_verified: nextStatus, user_type: nextStatus ? 'oficina' : 'cliente' })
+        .update({
+          is_verified: nextStatus,
+          user_type: nextStatus ? 'oficina' : 'cliente'
+        })
         .eq('id', profileId);
       if (error) throw error;
-      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, is_verified: nextStatus, user_type: nextStatus ? 'oficina' : 'cliente' } : p));
-      toast.success(nextStatus ? 'Oficina Verificada!' : 'Acesso Revogado');
-    } catch (error) { toast.error('Erro na atualização'); } finally { setUpdating(null); }
+      setProfiles(prev => prev.map(p =>
+        p.id === profileId
+          ? { ...p, is_verified: nextStatus, user_type: nextStatus ? 'oficina' : 'cliente' }
+          : p
+      ));
+      toast.success(nextStatus ? '✅ Oficina Verificada!' : '🚫 Acesso Revogado');
+    } catch (error) {
+      toast.error('Erro na atualização');
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const activateSubscription = async (profileId: string, days: number) => {
     setUpdating(profileId);
     try {
       const expiresAt = addDays(new Date(), days);
-      const { error } = await supabase.from('profiles').update({ subscription_status: 'active', subscription_expires_at: expiresAt.toISOString() }).eq('id', profileId);
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          subscription_status: 'active',
+          subscription_expires_at: expiresAt.toISOString()
+        })
+        .eq('id', profileId);
       if (error) throw error;
-      setProfiles(prev => prev.map(p => p.id === profileId ? { ...p, subscription_status: 'active', subscription_expires_at: expiresAt.toISOString() } : p));
-      toast.success(`Ativado por ${days} dias`);
-    } catch (error) { toast.error('Erro ao ativar'); } finally { setUpdating(null); }
+      setProfiles(prev => prev.map(p =>
+        p.id === profileId
+          ? { ...p, subscription_status: 'active', subscription_expires_at: expiresAt.toISOString() }
+          : p
+      ));
+      toast.success(`✅ Ativado por ${days} dias`);
+    } catch (error) {
+      toast.error('Erro ao ativar');
+    } finally {
+      setUpdating(null);
+    }
   };
 
-  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin w-8 h-8 text-primary" />
+    </div>
+  );
   if (!user || !isAdmin) return <Navigate to="/dashboard" replace />;
 
   return (
     <AppLayout showNav={false}>
       <div className="p-4 max-w-7xl mx-auto">
-        {/* Header com botão voltar */}
+        {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <ShieldCheck className="w-8 h-8 text-primary" />
-          <h1 className="text-2xl font-bold">Painel CEO</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Painel CEO</h1>
+            <p className="text-xs text-muted-foreground">{profiles.length} usuários cadastrados</p>
+          </div>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="animate-spin w-8 h-8 text-primary" /></div>
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin w-8 h-8 text-primary" />
+          </div>
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome/Oficina</TableHead>
+                  <TableHead>Nome / Oficina</TableHead>
                   <TableHead>E-mail</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expira em</TableHead>
+                  <TableHead>Assinatura</TableHead>
+                  <TableHead>Expira</TableHead>
                   <TableHead>Verificado</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -91,17 +132,52 @@ export default function AdminPanel() {
               <TableBody>
                 {profiles.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.razao_social || p.display_name || '—'}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{p.id}</TableCell>
-                    <TableCell><Badge variant="outline">{p.user_type || 'cliente'}</Badge></TableCell>
-                    <TableCell><Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>{p.subscription_status}</Badge></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{p.subscription_expires_at ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy') : '—'}</TableCell>
-                    <TableCell>
-                      <Switch checked={p.is_verified} onCheckedChange={() => toggleVerification(p.id, p.is_verified)} disabled={updating === p.id} />
+                    <TableCell className="font-medium">
+                      {p.razao_social || p.display_name || '—'}
                     </TableCell>
-                    <TableCell className="text-right flex justify-end gap-2">
-                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 30)}>+30d</Button>
-                      <Button size="sm" variant="outline" onClick={() => activateSubscription(p.id, 365)}>+1a</Button>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {/* email = coluna nova (SQL acima); fallback = display_name (inicializado com email) */}
+                      {p.email || p.display_name || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{p.user_type || 'cliente'}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={p.subscription_status === 'active' ? 'default' : 'secondary'}>
+                        {p.subscription_status || 'free'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {p.subscription_expires_at
+                        ? format(new Date(p.subscription_expires_at), 'dd/MM/yyyy')
+                        : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={p.is_verified ?? false}
+                        onCheckedChange={() => toggleVerification(p.id, p.is_verified)}
+                        disabled={updating === p.id}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => activateSubscription(p.id, 30)}
+                          disabled={updating === p.id}
+                        >
+                          +30d
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => activateSubscription(p.id, 365)}
+                          disabled={updating === p.id}
+                        >
+                          +1a
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
