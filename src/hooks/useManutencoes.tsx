@@ -48,7 +48,7 @@ export function useCreateManutencao() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('user_type, is_verified, display_name')
+        .select('user_type, is_verified, display_name, razao_social')
         .eq('user_id', user.id)
         .single();
 
@@ -62,7 +62,7 @@ export function useCreateManutencao() {
           descricao: newManutencao.descricao!,
           foto_url: newManutencao.foto_url || null,
           user_id: user.id,
-          oficina: profile?.display_name || 'Usuário',
+          oficina: profile?.razao_social || profile?.display_name || 'Usuário',
           verificado: isOficinaReal,
         }])
         .select()
@@ -85,16 +85,17 @@ export function useUploadFoto() {
   return useMutation({
     mutationFn: async (file: File) => {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
 
+      // CORREÇÃO CRÍTICA: nome correto do bucket conforme migration
       const { error: uploadError } = await supabase.storage
-        .from('manutencao_fotos')
-        .upload(fileName, file);
+        .from('manutencoes-fotos')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false });
 
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage
-        .from('manutencao_fotos')
+        .from('manutencoes-fotos')
         .getPublicUrl(fileName);
 
       return data.publicUrl;
