@@ -7,7 +7,6 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useEffect } from "react";
 
-// Pages
 import AuthPage from "./pages/AuthPage";
 import VerifyEmail from "./pages/VerifyEmail";
 import Dashboard from "./pages/Dashboard";
@@ -23,25 +22,24 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Initialize theme from localStorage or system preference
+// Dark mode por padrão — Kojak Seal sempre escuro
 function ThemeInitializer() {
   useEffect(() => {
-    const stored = localStorage.getItem('ficha-do-carro-theme');
-    if (stored === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (stored === 'light') {
+    const stored = localStorage.getItem('kojak-theme');
+    if (stored === 'light') {
       document.documentElement.classList.remove('dark');
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    } else {
+      // Padrão = dark (sem preferência ou preferência dark)
       document.documentElement.classList.add('dark');
+      if (!stored) localStorage.setItem('kojak-theme', 'dark');
     }
   }, []);
   return null;
 }
 
-// Auth redirect component
 function AuthRedirect() {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -49,11 +47,11 @@ function AuthRedirect() {
       </div>
     );
   }
-  
+
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return <AuthPage />;
 }
 
