@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ShieldCheck, Mail, Lock, Eye, EyeOff, Car } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, Eye, EyeOff, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -14,7 +14,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ export default function AuthPage() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        toast.success('Login realizado com sucesso!');
+        toast.success('Acesso autorizado!');
         navigate('/dashboard');
       } else {
         const { error } = await signUp(email, password);
@@ -42,31 +42,30 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
-      {/* Theme Toggle */}
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
 
-      {/* Logo */}
+      {/* Logo Kojak Seal */}
       <div className="flex flex-col items-center mb-10 animate-fade-in">
         <div className="relative w-20 h-20 mb-4">
-          <div className="absolute inset-0 rounded-2xl bg-primary/10" />
-          <div className="absolute inset-2 rounded-xl bg-card border-2 border-primary flex items-center justify-center shadow-card">
+          <div className="absolute inset-0 rounded-2xl bg-primary/10 animate-pulse" />
+          <div className="absolute inset-2 rounded-xl bg-card border-2 border-primary flex items-center justify-center shadow-lg shadow-primary/20">
             <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-foreground">
-          Ficha do Carro
+        <h1 className="text-3xl font-black text-foreground tracking-tight">
+          Kojak Seal
         </h1>
-        <p className="text-sm text-muted-foreground mt-2 text-center">
-          Seu Mecânico Online
+        <p className="text-sm text-muted-foreground mt-1 text-center">
+          Parada de Carro Digital
         </p>
       </div>
 
-      {/* Form Card */}
+      {/* Form */}
       <div className="w-full max-w-sm animate-slide-up">
         <div className="bg-card border border-border rounded-2xl p-6 shadow-elevated">
-          <h2 className="text-xl font-semibold text-foreground mb-6 text-center">
+          <h2 className="text-xl font-bold text-foreground mb-6 text-center">
             {isLogin ? 'Entrar' : 'Criar conta'}
           </h2>
 
@@ -83,7 +82,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="seu@email.com"
-                  className="pl-10 h-12 bg-secondary border-border rounded-xl focus:border-primary focus:ring-primary"
+                  className="pl-10 h-12 bg-secondary border-border rounded-xl focus:border-primary"
                   required
                 />
               </div>
@@ -101,7 +100,7 @@ export default function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="pl-10 pr-10 h-12 bg-secondary border-border rounded-xl focus:border-primary focus:ring-primary"
+                  className="pl-10 pr-10 h-12 bg-secondary border-border rounded-xl focus:border-primary"
                   required
                   minLength={6}
                 />
@@ -118,14 +117,14 @@ export default function AuthPage() {
             <Button
               type="submit"
               size="lg"
-              className="w-full mt-6"
+              className="w-full mt-6 gap-2 font-bold"
               disabled={loading}
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <Car className="w-5 h-5" />
+                  <Zap className="w-5 h-5" />
                   {isLogin ? 'Entrar' : 'Criar conta'}
                 </>
               )}
@@ -146,7 +145,6 @@ export default function AuthPage() {
         </div>
       </div>
 
-      {/* Footer */}
       <p className="mt-8 text-xs text-muted-foreground text-center">
         Registros selados com timestamp imutável do servidor
       </p>
