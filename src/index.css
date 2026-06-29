@@ -4,108 +4,86 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ficha do Carro Design System - Gov/Premium */
+/* Kojak Seal Design System - Dark Premium */
 @layer base {
   :root {
-    /* Light Mode (Documento Oficial) */
+    /* Light Mode (fallback) */
     --background: 210 40% 98%;
     --foreground: 215 25% 20%;
-
     --card: 0 0% 100%;
     --card-foreground: 215 25% 20%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 20%;
-
-    /* Azul Royal Primary */
-    --primary: 215 56% 23%;
+    --primary: 133 100% 30%;
     --primary-foreground: 0 0% 98%;
-
     --secondary: 210 20% 93%;
     --secondary-foreground: 215 25% 25%;
-
     --muted: 210 15% 90%;
     --muted-foreground: 215 10% 45%;
-
-    --accent: 215 56% 23%;
+    --accent: 133 100% 30%;
     --accent-foreground: 0 0% 98%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-
     --border: 210 15% 85%;
     --input: 210 15% 90%;
-    --ring: 215 56% 23%;
-
+    --ring: 133 100% 30%;
     --radius: 0.75rem;
-
-    /* Custom Ficha do Carro tokens */
-    --navy: 215 56% 23%;
-    --navy-light: 215 40% 35%;
-    --silver: 210 10% 75%;
-    --ice-white: 210 40% 98%;
-    --seal-verified: 215 56% 23%;
-    
-    /* Shadows */
-    --shadow-card: 0 2px 12px rgba(26, 54, 93, 0.08);
-    --shadow-elevated: 0 4px 24px rgba(26, 54, 93, 0.12);
-
+    --shadow-card: 0 2px 12px rgba(0, 255, 65, 0.06);
+    --shadow-elevated: 0 4px 24px rgba(0, 255, 65, 0.10);
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 215 25% 25%;
-    --sidebar-primary: 215 56% 23%;
+    --sidebar-primary: 133 100% 30%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 210 20% 93%;
     --sidebar-accent-foreground: 215 25% 25%;
     --sidebar-border: 210 15% 85%;
-    --sidebar-ring: 215 56% 23%;
+    --sidebar-ring: 133 100% 30%;
   }
 
   .dark {
-    /* Dark Mode (Oficina) */
-    --background: 222 47% 5%;
-    --foreground: 210 20% 92%;
+    /* Dark Mode Premium — Kojak Seal Palette */
+    /* Preto Carbono #080808 → hsl(0 0% 3%) */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 92%;
 
-    --card: 222 40% 8%;
-    --card-foreground: 210 20% 92%;
+    /* Cinza Escuro #121212 → hsl(0 0% 7%) */
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 92%;
 
-    --popover: 222 40% 7%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 92%;
 
-    --primary: 215 60% 50%;
-    --primary-foreground: 0 0% 98%;
+    /* Verde Neon #00FF41 → hsl(133 100% 50%) */
+    --primary: 133 100% 50%;
+    --primary-foreground: 0 0% 3%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 222 25% 16%;
-    --muted-foreground: 210 10% 55%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 50%;
 
-    --accent: 215 60% 50%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 133 100% 50%;
+    --accent-foreground: 0 0% 3%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 222 20% 18%;
-    --input: 222 25% 14%;
-    --ring: 215 60% 50%;
+    --border: 0 0% 16%;
+    --input: 0 0% 12%;
+    --ring: 133 100% 50%;
 
-    --navy: 215 60% 50%;
-    --navy-light: 215 50% 60%;
-    --silver: 210 10% 50%;
-    --seal-verified: 215 60% 50%;
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.6);
+    --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.7);
 
-    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.5);
-
-    --sidebar-background: 222 40% 7%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 215 60% 50%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 222 30% 14%;
-    --sidebar-accent-foreground: 210 20% 85%;
-    --sidebar-border: 222 20% 18%;
-    --sidebar-ring: 215 60% 50%;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 133 100% 50%;
+    --sidebar-primary-foreground: 0 0% 3%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 133 100% 50%;
   }
 }
 
@@ -113,7 +91,7 @@
   * {
     @apply border-border;
   }
-  
+
   html {
     font-family: 'Inter', system-ui, sans-serif;
   }
@@ -121,20 +99,24 @@
   body {
     @apply bg-background text-foreground antialiased;
     min-height: 100vh;
-    /* Safe area for mobile */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
 @layer utilities {
-  /* Subtle glow for primary elements */
+  /* Neon glow para primary elements (verde neon no dark) */
   .glow-primary {
-    box-shadow: 0 0 12px hsl(215 56% 23% / 0.2);
+    box-shadow: 0 0 12px hsl(133 100% 50% / 0.15);
   }
-  
+
   .dark .glow-primary {
-    box-shadow: 0 0 16px hsl(215 60% 50% / 0.3);
+    box-shadow: 0 0 20px hsl(133 100% 50% / 0.35);
+  }
+
+  /* Shadow neon verde */
+  .shadow-neon {
+    box-shadow: 0 0 8px hsl(133 100% 50% / 0.5);
   }
 
   /* Glass effect */
@@ -144,68 +126,45 @@
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid hsl(var(--border));
   }
-  
-  /* Seal stamp animation */
-  @keyframes stamp {
-    0% {
-      transform: scale(2) rotate(-15deg);
-      opacity: 0;
-    }
-    50% {
-      transform: scale(0.9) rotate(5deg);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
+
+  .glass-dark {
+    background: hsl(0 0% 5% / 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
-  
+
+  /* Stamp animation */
+  @keyframes stamp {
+    0% { transform: scale(2) rotate(-15deg); opacity: 0; }
+    50% { transform: scale(0.9) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
   .animate-stamp {
     animation: stamp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  
-  /* Slide up animation */
+
   @keyframes slide-up {
-    from {
-      transform: translateY(20px);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
-  
+
   .animate-slide-up {
     animation: slide-up 0.4s ease-out forwards;
   }
-  
-  /* Fade in */
+
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  
+
   .animate-fade-in {
     animation: fade-in 0.3s ease-out forwards;
   }
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--silver));
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary) / 0.5);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: hsl(var(--muted)); }
+::-webkit-scrollbar-thumb { background: hsl(0 0% 25%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(133 100% 50% / 0.5); }
