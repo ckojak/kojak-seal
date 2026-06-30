@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   User, Mail, LogOut, Car, Wrench, Shield, 
-  Bell, Settings, Building2, MapPin, Phone, Save, Loader2 
+  Bell, Settings, Building2, MapPin, Phone, Save, Loader2, Lock 
 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -31,6 +31,9 @@ export default function Perfil() {
     endereco: '',
     telefone: '',
   });
+
+  // CNPJ já salvo no banco = trava de segurança (não pode mais editar)
+  const cnpjLocked = !!profile?.cnpj;
 
   // Sincroniza os dados do banco com o formulário quando carrega
   useEffect(() => {
@@ -57,7 +60,8 @@ export default function Perfil() {
         .from('profiles')
         .update({
           razao_social: formData.razaoSocial,
-          cnpj: formData.cnpj,
+          // Trava: se já existe CNPJ salvo, nunca reenvia o valor do form (evita alteração)
+          cnpj: cnpjLocked ? profile?.cnpj : formData.cnpj,
           endereco: formData.endereco,
           telefone: formData.telefone,
           display_name: formData.razaoSocial || profile?.display_name,
@@ -159,13 +163,21 @@ export default function Perfil() {
 
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground ml-1">CNPJ</Label>
+                  <Label className="text-xs text-muted-foreground ml-1 flex items-center gap-1">
+                    CNPJ {cnpjLocked && <Lock className="w-3 h-3 text-muted-foreground" />}
+                  </Label>
                   <Input 
                     value={formData.cnpj} 
-                    onChange={e => setFormData({...formData, cnpj: e.target.value})}
-                    className="bg-secondary/50 border-none rounded-xl h-12"
+                    onChange={e => !cnpjLocked && setFormData({...formData, cnpj: e.target.value})}
+                    disabled={cnpjLocked}
+                    className="bg-secondary/50 border-none rounded-xl h-12 disabled:opacity-60 disabled:cursor-not-allowed"
                     placeholder="00.000.000/0001-00"
                   />
+                  {cnpjLocked && (
+                    <p className="text-[10px] text-muted-foreground ml-1">
+                      CNPJ já validado e travado. Para alterar, fale com o suporte.
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground ml-1">WhatsApp de Contato</Label>
