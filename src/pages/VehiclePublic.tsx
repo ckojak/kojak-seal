@@ -153,15 +153,23 @@ export default function VehiclePublic() {
                       </div>
                     )}
 
-                    {/* Exemplo de exibição da foto da peça (se existir na base) */}
-                    <div className="space-y-1.5">
-                      <span className="text-[9px] text-muted-foreground uppercase font-bold flex items-center gap-1">
-                        <FileText className="w-3 h-3" /> Peça/Nota
-                      </span>
-                      <div className="h-32 bg-secondary/50 rounded-2xl flex items-center justify-center border border-border">
-                        <span className="text-[10px] text-muted-foreground tracking-tighter">Aguardando peça</span>
+                                        {m.foto_peca_url ? (
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] text-slate-500 uppercase font-bold flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> Peça/Nota
+                        </span>
+                        <img src={m.foto_peca_url} alt="Peça ou Nota Fiscal" className="w-full h-32 object-cover rounded-2xl border border-slate-800 hover:scale-105 transition-transform" />
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] text-slate-500 uppercase font-bold flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> Peça/Nota
+                        </span>
+                        <div className="h-32 bg-slate-800/50 rounded-2xl flex items-center justify-center border border-slate-800">
+                          <span className="text-[10px] text-slate-600">Sem foto</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
