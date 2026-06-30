@@ -62,6 +62,7 @@ export function useCreateManutencao() {
           km_atual: newManutencao.km_atual!,
           descricao: newManutencao.descricao!,
           foto_url: newManutencao.foto_url || null,
+          foto_peca_url: newManutencao.foto_peca_url || null,
           user_id: user.id,
           oficina: profile?.razao_social || profile?.display_name || 'Usuário',
           verificado: isOficinaReal,
